@@ -6,15 +6,15 @@
   <title>Admin — Almonte Plumbing</title>
   <style>
     :root {
-      --green:      #1A4D2E;
-      --green-dark: #12381f;
-      --green-lite: #A8D5B5;
-      --accent:     #e8a020;
-      --bg:         #f4f6f4;
+      --green:      #2F6CB0;   /* brand blue (var name kept for compatibility) */
+      --green-dark: #245488;
+      --green-lite: #8FB3D9;
+      --accent:     #1E2A3A;   /* navy secondary */
+      --bg:         #F1F5FA;
       --surface:    #ffffff;
-      --border:     #d1d9d4;
-      --text:       #1a1a1a;
-      --muted:      #6b7a70;
+      --border:     #E1E7F0;
+      --text:       #1E2A3A;
+      --muted:      #5A6678;
       --red:        #dc2626;
       --radius:     8px;
     }
@@ -61,7 +61,7 @@
       width:100%; padding:.6rem .75rem; border:1px solid var(--border); border-radius:6px;
       font-size:.9rem; font-family:inherit; background:var(--surface); color:var(--text);
     }
-    input:focus, select:focus, textarea:focus { outline:none; border-color:var(--green); box-shadow:0 0 0 3px rgba(26,77,46,.1); }
+    input:focus, select:focus, textarea:focus { outline:none; border-color:var(--green); box-shadow:0 0 0 3px rgba(47,108,176,.1); }
     textarea { resize:vertical; min-height:80px; }
     .form-row { display:grid; grid-template-columns:1fr 1fr; gap:.75rem; }
 
@@ -88,7 +88,7 @@
     .service-line { display:grid; grid-template-columns:1fr auto auto; gap:.5rem; align-items:center; background:var(--bg); padding:.6rem .75rem; border-radius:6px; margin-bottom:.5rem; }
     .service-line-name { font-size:.875rem; font-weight:600; }
     .price-input { width:88px; padding:.3rem .5rem; font-size:.875rem; font-weight:700; text-align:right; border:1px solid var(--border); border-radius:5px; background:var(--surface); }
-    .price-input:focus { outline:none; border-color:var(--green); box-shadow:0 0 0 2px rgba(26,77,46,.1); }
+    .price-input:focus { outline:none; border-color:var(--green); box-shadow:0 0 0 2px rgba(47,108,176,.1); }
     .remove-line { background:none; border:none; color:var(--red); cursor:pointer; font-size:1rem; padding:.2rem .4rem; }
     .discount-row { display:flex; align-items:center; gap:.5rem; background:var(--bg); padding:.6rem .75rem; border-radius:6px; margin-bottom:.5rem; border:1px dashed var(--border); }
     .discount-row label { font-size:.8rem; font-weight:600; color:var(--muted); flex:1; margin:0; text-transform:none; letter-spacing:0; }
@@ -144,7 +144,7 @@
     .week-col { border-right:1px solid var(--border); cursor:pointer; }
     .week-col:last-child { border-right:none; }
     .week-col:hover { background:var(--bg); }
-    .week-col.today { background:#f0f7f2; }
+    .week-col.today { background:#EEF4FB; }
     .week-day-hdr { text-align:center; padding:.5rem .25rem; border-bottom:1px solid var(--border); }
     .week-day-name { font-size:.72rem; color:var(--muted); font-weight:700; text-transform:uppercase; }
     .week-day-num { font-size:1.1rem; font-weight:800; color:var(--text); margin-top:.1rem; }
@@ -161,7 +161,7 @@
     .month-cell:hover { background:var(--bg); }
     .month-cell:nth-child(7n+7) { border-right:none; }
     .month-cell.empty { background:#fafafa; cursor:default; }
-    .month-cell.today { background:#f0f7f2; }
+    .month-cell.today { background:#EEF4FB; }
     .month-cell.has-events { }
     .month-date { font-size:.8rem; font-weight:700; margin-bottom:.2rem; }
     .month-date.today-circle { background:var(--green); color:#fff; border-radius:50%; width:22px; height:22px; display:flex; align-items:center; justify-content:center; font-size:.75rem; }
@@ -188,9 +188,9 @@
     .badge-declined  { background:#f3f4f6; color:#6b7280; }
 
     /* ── Schedule / Calendar ── */
-    .event-block { padding:.6rem .875rem; border-left:4px solid var(--green); background:#f0f7f2; margin:.4rem 1rem; border-radius:0 6px 6px 0; }
+    .event-block { padding:.6rem .875rem; border-left:4px solid var(--green); background:#EEF4FB; margin:.4rem 1rem; border-radius:0 6px 6px 0; }
     .event-block.external { border-left-color:#6366f1; background:#f5f5ff; }
-    .event-block.almonte  { border-left-color:var(--green); background:#f0f7f2; }
+    .event-block.almonte  { border-left-color:var(--green); background:#EEF4FB; }
     .event-time   { font-size:.78rem; color:var(--muted); font-weight:600; }
     .event-title  { font-size:.875rem; font-weight:700; margin:.1rem 0; }
     .event-detail { font-size:.78rem; color:var(--muted); }
