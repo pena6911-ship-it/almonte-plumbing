@@ -1,0 +1,1714 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Admin — Almonte Plumbing</title>
+  <style>
+    :root {
+      --green:      #1A4D2E;
+      --green-dark: #12381f;
+      --green-lite: #A8D5B5;
+      --accent:     #e8a020;
+      --bg:         #f4f6f4;
+      --surface:    #ffffff;
+      --border:     #d1d9d4;
+      --text:       #1a1a1a;
+      --muted:      #6b7a70;
+      --red:        #dc2626;
+      --radius:     8px;
+    }
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; background: var(--bg); color: var(--text); font-size: 15px; }
+
+    /* ── Auth Gate ── */
+    #auth-gate { display:flex; align-items:center; justify-content:center; min-height:100vh; padding:1rem; }
+    .auth-card { background:var(--surface); border-radius:12px; padding:2rem; width:100%; max-width:360px; box-shadow:0 4px 24px rgba(0,0,0,.1); text-align:center; }
+    .auth-card h1 { font-size:1.4rem; color:var(--green); margin-bottom:.25rem; }
+    .auth-card p  { color:var(--muted); font-size:.875rem; margin-bottom:1.5rem; }
+    .auth-error   { color:var(--red); font-size:.85rem; margin-top:.5rem; display:none; }
+
+    /* ── App Shell ── */
+    #app { display:none; min-height:100vh; flex-direction:column; }
+    .topbar { background:var(--green); color:#fff; padding:.75rem 1rem; display:flex; align-items:center; justify-content:space-between; position:sticky; top:0; z-index:100; }
+    .topbar h1 { font-size:1rem; font-weight:700; }
+    .topbar-sub { font-size:.75rem; opacity:.7; }
+    .logout-btn { background:transparent; border:1px solid rgba(255,255,255,.4); color:#fff; padding:.35rem .75rem; border-radius:6px; cursor:pointer; font-size:.8rem; }
+
+    /* ── Nav Tabs ── */
+    .nav-tabs { display:flex; background:var(--surface); border-bottom:2px solid var(--border); overflow-x:auto; }
+    .nav-tab { flex:1; min-width:80px; padding:.75rem .5rem; text-align:center; font-size:.8rem; font-weight:600; color:var(--muted); cursor:pointer; border:none; background:transparent; border-bottom:2px solid transparent; margin-bottom:-2px; white-space:nowrap; }
+    .nav-tab.active { color:var(--green); border-bottom-color:var(--green); }
+
+    /* ── Panels ── */
+    .panel { display:none; padding:1rem; max-width:700px; margin:0 auto; width:100%; }
+    .panel.active { display:block; }
+
+    /* ── Cards ── */
+    .card { background:var(--surface); border-radius:var(--radius); border:1px solid var(--border); padding:1.25rem; margin-bottom:1rem; }
+    .card-title { font-weight:700; font-size:.95rem; margin-bottom:1rem; color:var(--green); display:flex; align-items:center; gap:.5rem; }
+
+    /* ── Stats ── */
+    .stats-grid { display:grid; grid-template-columns:repeat(2,1fr); gap:.75rem; margin-bottom:1rem; }
+    .stat-card { background:var(--surface); border-radius:var(--radius); border:1px solid var(--border); padding:1rem; text-align:center; }
+    .stat-val { font-size:1.75rem; font-weight:800; color:var(--green); }
+    .stat-lbl { font-size:.75rem; color:var(--muted); margin-top:.25rem; }
+
+    /* ── Forms ── */
+    .form-group { margin-bottom:.875rem; }
+    label { display:block; font-size:.8rem; font-weight:600; margin-bottom:.3rem; color:var(--muted); text-transform:uppercase; letter-spacing:.03em; }
+    input, select, textarea {
+      width:100%; padding:.6rem .75rem; border:1px solid var(--border); border-radius:6px;
+      font-size:.9rem; font-family:inherit; background:var(--surface); color:var(--text);
+    }
+    input:focus, select:focus, textarea:focus { outline:none; border-color:var(--green); box-shadow:0 0 0 3px rgba(26,77,46,.1); }
+    textarea { resize:vertical; min-height:80px; }
+    .form-row { display:grid; grid-template-columns:1fr 1fr; gap:.75rem; }
+
+    /* ── Buttons ── */
+    .btn { display:inline-flex; align-items:center; gap:.4rem; padding:.6rem 1.1rem; border-radius:6px; font-size:.875rem; font-weight:600; cursor:pointer; border:none; transition:opacity .15s; }
+    .btn:hover { opacity:.88; }
+    .btn-primary  { background:var(--green); color:#fff; }
+    .btn-secondary{ background:var(--bg); color:var(--text); border:1px solid var(--border); }
+    .btn-danger   { background:var(--red); color:#fff; }
+    .btn-accent   { background:var(--accent); color:#fff; }
+    .btn-sm       { padding:.4rem .75rem; font-size:.8rem; }
+    .btn-full     { width:100%; justify-content:center; }
+
+    /* ── Client list ── */
+    .client-item { padding:.875rem; border-bottom:1px solid var(--border); display:flex; align-items:center; gap:.75rem; cursor:pointer; }
+    .client-item:hover { background:var(--bg); }
+    .client-item:last-child { border-bottom:none; }
+    .client-avatar { width:38px; height:38px; border-radius:50%; background:var(--green); color:#fff; display:flex; align-items:center; justify-content:center; font-weight:700; font-size:.9rem; flex-shrink:0; }
+    .client-name  { font-weight:600; font-size:.9rem; }
+    .client-meta  { font-size:.8rem; color:var(--muted); }
+    .client-arrow { margin-left:auto; color:var(--muted); }
+
+    /* ── Invoice builder ── */
+    .service-line { display:grid; grid-template-columns:1fr auto auto; gap:.5rem; align-items:center; background:var(--bg); padding:.6rem .75rem; border-radius:6px; margin-bottom:.5rem; }
+    .service-line-name { font-size:.875rem; font-weight:600; }
+    .price-input { width:88px; padding:.3rem .5rem; font-size:.875rem; font-weight:700; text-align:right; border:1px solid var(--border); border-radius:5px; background:var(--surface); }
+    .price-input:focus { outline:none; border-color:var(--green); box-shadow:0 0 0 2px rgba(26,77,46,.1); }
+    .remove-line { background:none; border:none; color:var(--red); cursor:pointer; font-size:1rem; padding:.2rem .4rem; }
+    .discount-row { display:flex; align-items:center; gap:.5rem; background:var(--bg); padding:.6rem .75rem; border-radius:6px; margin-bottom:.5rem; border:1px dashed var(--border); }
+    .discount-row label { font-size:.8rem; font-weight:600; color:var(--muted); flex:1; margin:0; text-transform:none; letter-spacing:0; }
+    .discount-type-toggle { display:flex; border:1px solid var(--border); border-radius:5px; overflow:hidden; }
+    .discount-type-toggle button { padding:.3rem .6rem; font-size:.8rem; font-weight:700; border:none; background:var(--surface); cursor:pointer; color:var(--muted); }
+    .discount-type-toggle button.active { background:var(--green); color:#fff; }
+    .invoice-totals { background:var(--bg); border-radius:6px; padding:.875rem; margin-top:.75rem; }
+    .total-row { display:flex; justify-content:space-between; font-size:.875rem; margin-bottom:.35rem; }
+    .total-row.discount { color:var(--red); }
+    .total-row.grand { font-weight:800; font-size:1.05rem; color:var(--green); margin-bottom:0; padding-top:.35rem; border-top:1px solid var(--border); }
+
+    /* ── Invoice list ── */
+    .invoice-item { padding:.875rem; border-bottom:1px solid var(--border); }
+    .invoice-item:last-child { border-bottom:none; }
+    .invoice-header { display:flex; justify-content:space-between; align-items:flex-start; margin-bottom:.35rem; }
+    .invoice-num  { font-weight:700; font-size:.9rem; }
+    .invoice-meta { font-size:.8rem; color:var(--muted); }
+    .badge { display:inline-block; padding:.2rem .55rem; border-radius:20px; font-size:.73rem; font-weight:700; text-transform:uppercase; letter-spacing:.04em; }
+    .badge-draft    { background:#f3f4f6; color:#6b7280; }
+    .badge-sent     { background:#dbeafe; color:#1d4ed8; }
+    .badge-paid     { background:#dcfce7; color:#166534; }
+    .badge-cancelled{ background:#fee2e2; color:#991b1b; }
+
+    /* ── Search ── */
+    .search-wrap { position:relative; margin-bottom:.875rem; }
+    .search-wrap input { padding-left:2.2rem; }
+    .search-icon { position:absolute; left:.7rem; top:50%; transform:translateY(-50%); color:var(--muted); font-size:1rem; pointer-events:none; }
+
+    /* ── Empty states ── */
+    .empty { text-align:center; padding:2.5rem 1rem; color:var(--muted); }
+    .empty-icon { font-size:2.5rem; margin-bottom:.75rem; }
+
+    /* ── Loading ── */
+    .loading { text-align:center; padding:2rem; color:var(--muted); }
+    .spinner { display:inline-block; width:24px; height:24px; border:3px solid var(--border); border-top-color:var(--green); border-radius:50%; animation:spin .7s linear infinite; }
+    @keyframes spin { to { transform:rotate(360deg); } }
+
+    /* ── Toast ── */
+    #toast { position:fixed; bottom:1.5rem; left:50%; transform:translateX(-50%) translateY(80px); background:#1a1a1a; color:#fff; padding:.75rem 1.25rem; border-radius:8px; font-size:.875rem; font-weight:500; z-index:999; transition:transform .3s; pointer-events:none; }
+    #toast.show { transform:translateX(-50%) translateY(0); }
+    #toast.success { background:var(--green); }
+    #toast.error   { background:var(--red); }
+
+    /* ── Modal ── */
+    .modal-backdrop { display:none; position:fixed; inset:0; background:rgba(0,0,0,.45); z-index:200; align-items:center; justify-content:center; padding:1rem; }
+    .modal-backdrop.open { display:flex; }
+    .modal { background:var(--surface); border-radius:12px; width:100%; max-width:480px; max-height:90vh; overflow-y:auto; padding:1.5rem; }
+    .modal-title { font-size:1.1rem; font-weight:700; margin-bottom:1.25rem; color:var(--green); }
+    .modal-footer { display:flex; gap:.75rem; margin-top:1.25rem; justify-content:flex-end; }
+
+    /* ── Week view ── */
+    .week-grid { display:grid; grid-template-columns:repeat(7,minmax(100px,1fr)); min-width:600px; }
+    .week-col { border-right:1px solid var(--border); cursor:pointer; }
+    .week-col:last-child { border-right:none; }
+    .week-col:hover { background:var(--bg); }
+    .week-col.today { background:#f0f7f2; }
+    .week-day-hdr { text-align:center; padding:.5rem .25rem; border-bottom:1px solid var(--border); }
+    .week-day-name { font-size:.72rem; color:var(--muted); font-weight:700; text-transform:uppercase; }
+    .week-day-num { font-size:1.1rem; font-weight:800; color:var(--text); margin-top:.1rem; }
+    .week-day-num.today-circle { background:var(--green); color:#fff; border-radius:50%; width:28px; height:28px; display:flex; align-items:center; justify-content:center; margin:0 auto; font-size:.9rem; }
+    .week-day-events { padding:.35rem .3rem; min-height:80px; }
+    .week-event { font-size:.72rem; background:var(--green); color:#fff; border-radius:3px; padding:.15rem .35rem; margin-bottom:.25rem; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+    .week-event.external { background:#6366f1; }
+    .week-free { font-size:.72rem; color:var(--border); text-align:center; padding:.5rem 0; }
+
+    /* ── Month view ── */
+    .month-grid { display:grid; grid-template-columns:repeat(7,minmax(0,1fr)); width:100%; }
+    .month-hdr { text-align:center; padding:.4rem; font-size:.72rem; font-weight:700; color:var(--muted); text-transform:uppercase; border-bottom:1px solid var(--border); min-width:0; }
+    .month-cell { min-height:72px; border-right:1px solid var(--border); border-bottom:1px solid var(--border); padding:.3rem; cursor:pointer; min-width:0; overflow:hidden; }
+    .month-cell:hover { background:var(--bg); }
+    .month-cell:nth-child(7n+7) { border-right:none; }
+    .month-cell.empty { background:#fafafa; cursor:default; }
+    .month-cell.today { background:#f0f7f2; }
+    .month-cell.has-events { }
+    .month-date { font-size:.8rem; font-weight:700; margin-bottom:.2rem; }
+    .month-date.today-circle { background:var(--green); color:#fff; border-radius:50%; width:22px; height:22px; display:flex; align-items:center; justify-content:center; font-size:.75rem; }
+    .month-event-pill { font-size:.68rem; background:var(--green); color:#fff; border-radius:3px; padding:.1rem .3rem; margin-bottom:.15rem; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+    .month-event-pill.external { background:#6366f1; }
+    .month-more { font-size:.68rem; color:var(--muted); }
+    .month-title { padding:.5rem 1rem; font-weight:700; font-size:.85rem; color:var(--muted); }
+
+    /* ── Leads ── */
+    .lead-card { padding:.875rem 1rem; border-bottom:1px solid var(--border); }
+    .lead-card:last-child { border-bottom:none; }
+    .lead-card__header { display:flex; justify-content:space-between; align-items:flex-start; margin-bottom:.4rem; gap:.5rem; }
+    .lead-card__name   { font-weight:700; font-size:.95rem; }
+    .lead-card__time   { font-size:.75rem; color:var(--muted); white-space:nowrap; }
+    .lead-card__service { font-size:.85rem; color:var(--text); margin-bottom:.25rem; }
+    .lead-card__urgency { font-size:.78rem; color:var(--muted); margin-bottom:.5rem; }
+    .lead-card__contact { font-size:.82rem; color:var(--muted); margin-bottom:.75rem; }
+    .lead-card__contact a { color:var(--green); font-weight:600; }
+    .lead-card__desc  { font-size:.82rem; color:var(--muted); font-style:italic; margin-bottom:.75rem; background:var(--bg); padding:.5rem .75rem; border-radius:6px; }
+    .lead-card__actions { display:flex; gap:.5rem; flex-wrap:wrap; }
+    .badge-new       { background:#fee2e2; color:#991b1b; }
+    .badge-contacted { background:#fef9c3; color:#854d0e; }
+    .badge-booked    { background:#dcfce7; color:#166534; }
+    .badge-declined  { background:#f3f4f6; color:#6b7280; }
+
+    /* ── Schedule / Calendar ── */
+    .event-block { padding:.6rem .875rem; border-left:4px solid var(--green); background:#f0f7f2; margin:.4rem 1rem; border-radius:0 6px 6px 0; }
+    .event-block.external { border-left-color:#6366f1; background:#f5f5ff; }
+    .event-block.almonte  { border-left-color:var(--green); background:#f0f7f2; }
+    .event-time   { font-size:.78rem; color:var(--muted); font-weight:600; }
+    .event-title  { font-size:.875rem; font-weight:700; margin:.1rem 0; }
+    .event-detail { font-size:.78rem; color:var(--muted); }
+    .event-cancel { float:right; background:none; border:none; color:var(--red); cursor:pointer; font-size:.8rem; padding:.1rem .3rem; }
+    .no-events    { text-align:center; padding:2rem; color:var(--muted); font-size:.875rem; }
+    .time-label   { font-size:.75rem; color:var(--muted); padding:.5rem 1rem .25rem; font-weight:600; border-top:1px solid var(--border); }
+
+    @media (max-width: 480px) {
+      .form-row { grid-template-columns:1fr; }
+      .stats-grid { grid-template-columns:repeat(2,1fr); }
+    }
+  </style>
+</head>
+<body>
+
+<!-- ── Auth Gate ───────────────────────────────────────── -->
+<div id="auth-gate">
+  <div class="auth-card">
+    <div style="font-size:2rem;margin-bottom:.5rem;">🔧</div>
+    <h1>Almonte Plumbing</h1>
+    <p>Admin Dashboard</p>
+    <div class="form-group">
+      <input type="password" id="password-input" placeholder="Enter admin password" autocomplete="current-password" />
+    </div>
+    <button class="btn btn-primary btn-full" onclick="login()">Sign In</button>
+    <p class="auth-error" id="auth-error">Incorrect password. Try again.</p>
+  </div>
+</div>
+
+<!-- ── App ─────────────────────────────────────────────── -->
+<div id="app">
+  <div class="topbar">
+    <div>
+      <div class="topbar-sub">🔧 Almonte Plumbing</div>
+      <h1>Admin Dashboard</h1>
+    </div>
+    <button class="logout-btn" onclick="logout()">Sign out</button>
+  </div>
+
+  <nav class="nav-tabs">
+    <button class="nav-tab active" onclick="switchTab('overview')">📊 Overview</button>
+    <button class="nav-tab" id="leads-tab-btn" onclick="switchTab('leads')">🎯 Leads <span id="leads-badge" style="display:none;background:#dc2626;color:#fff;border-radius:99px;padding:.05rem .45rem;font-size:.7rem;margin-left:.25rem;font-weight:800;"></span></button>
+    <button class="nav-tab" onclick="switchTab('clients')">👥 Clients</button>
+    <button class="nav-tab" onclick="switchTab('invoice')">🧾 New Invoice</button>
+    <button class="nav-tab" onclick="switchTab('history')">📋 History</button>
+    <button class="nav-tab" onclick="switchTab('schedule')">📅 Schedule</button>
+    <button class="nav-tab" onclick="switchTab('services')">⚙️ Services</button>
+  </nav>
+
+  <!-- ── OVERVIEW ── -->
+  <div class="panel active" id="panel-overview">
+    <div class="stats-grid" id="stats-grid">
+      <div class="stat-card"><div class="stat-val" id="stat-clients">—</div><div class="stat-lbl">Clients</div></div>
+      <div class="stat-card"><div class="stat-val" id="stat-invoices">—</div><div class="stat-lbl">Invoices Sent</div></div>
+      <div class="stat-card"><div class="stat-val" id="stat-paid">—</div><div class="stat-lbl">Paid</div></div>
+      <div class="stat-card"><div class="stat-val" id="stat-revenue">—</div><div class="stat-lbl">Revenue</div></div>
+    </div>
+    <div class="card">
+      <div class="card-title">🕐 Recent Invoices</div>
+      <div id="recent-invoices"><div class="loading"><div class="spinner"></div></div></div>
+    </div>
+  </div>
+
+  <!-- ── LEADS ── -->
+  <div class="panel" id="panel-leads">
+    <div style="display:flex;gap:.5rem;margin-bottom:.875rem;flex-wrap:wrap;">
+      <button class="btn btn-primary btn-sm active-lead-filter"   onclick="filterLeads('all',this)">All</button>
+      <button class="btn btn-secondary btn-sm" onclick="filterLeads('new',this)">🔴 New</button>
+      <button class="btn btn-secondary btn-sm" onclick="filterLeads('contacted',this)">🟡 Contacted</button>
+      <button class="btn btn-secondary btn-sm" onclick="filterLeads('booked',this)">🟢 Booked</button>
+      <button class="btn btn-secondary btn-sm" onclick="filterLeads('declined',this)">⚫ Declined</button>
+    </div>
+    <div id="leads-list"><div class="loading"><div class="spinner"></div></div></div>
+  </div>
+
+  <!-- ── CLIENTS ── -->
+  <div class="panel" id="panel-clients">
+    <div style="display:flex;gap:.75rem;margin-bottom:.875rem;align-items:center;">
+      <div class="search-wrap" style="flex:1;">
+        <span class="search-icon">🔍</span>
+        <input type="text" id="client-search" placeholder="Search clients…" oninput="searchClients(this.value)" />
+      </div>
+      <button class="btn btn-primary btn-sm" onclick="openAddClient()">+ Add</button>
+    </div>
+    <div class="card" style="padding:0;overflow:hidden;">
+      <div id="client-list"><div class="loading"><div class="spinner"></div></div></div>
+    </div>
+  </div>
+
+  <!-- ── NEW INVOICE ── -->
+  <div class="panel" id="panel-invoice">
+    <div class="card">
+      <div class="card-title">👤 Client</div>
+      <div class="form-group">
+        <div class="search-wrap">
+          <span class="search-icon">🔍</span>
+          <input type="text" id="inv-client-search" placeholder="Search client by name or phone…" oninput="searchInvClient(this.value)" autocomplete="off" />
+        </div>
+        <div id="inv-client-results" style="display:none;border:1px solid var(--border);border-radius:6px;margin-top:.35rem;background:var(--surface);"></div>
+        <div id="inv-client-selected" style="display:none;background:var(--bg);border-radius:6px;padding:.75rem;margin-top:.35rem;">
+          <div style="display:flex;justify-content:space-between;align-items:center;">
+            <div>
+              <div id="inv-client-name" style="font-weight:700;"></div>
+              <div id="inv-client-phone" style="font-size:.8rem;color:var(--muted);"></div>
+            </div>
+            <button class="btn btn-secondary btn-sm" onclick="clearInvClient()">Change</button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="card-title">📍 Job Details</div>
+      <div class="form-row">
+        <div class="form-group">
+          <label>County (work performed in)</label>
+          <select id="inv-county" onchange="updateTaxDisplay()">
+            <option value="union">Union County — 6.75%</option>
+            <option value="mecklenburg">Mecklenburg County — 7.25%</option>
+            <option value="other">Other — State only 4.75%</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label>Job Type</label>
+          <select id="inv-job-type" onchange="updateTaxDisplay()">
+            <option value="repair">Repair / Maintenance (taxable)</option>
+            <option value="capital_improvement">Capital Improvement (not taxed)</option>
+          </select>
+        </div>
+      </div>
+      <div id="tax-rate-display" style="background:var(--bg);border-radius:6px;padding:.6rem .875rem;font-size:.85rem;color:var(--muted);display:flex;align-items:center;justify-content:space-between;gap:1rem;">
+        <span>Tax rate: <strong id="tax-rate-label" style="color:var(--green);">6.75% (Union County)</strong></span>
+        <label style="display:flex;align-items:center;gap:.4rem;cursor:pointer;font-size:.82rem;text-transform:none;letter-spacing:0;font-weight:600;color:var(--red);white-space:nowrap;">
+          <input type="checkbox" id="inv-no-tax" onchange="updateTaxDisplay()" style="width:auto;accent-color:var(--red);" />
+          No Tax Override
+        </label>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="card-title">🔧 Services</div>
+      <div class="form-group">
+        <select id="service-select" onchange="addServiceLine(this)">
+          <option value="">— Select a service to add —</option>
+        </select>
+      </div>
+      <div id="service-lines"></div>
+
+      <div id="discount-section" style="display:none;">
+        <div class="discount-row">
+          <label>Discount</label>
+          <div class="discount-type-toggle">
+            <button id="disc-flat-btn" class="active" onclick="setDiscountType('flat')">$</button>
+            <button id="disc-pct-btn" onclick="setDiscountType('percent')">%</button>
+          </div>
+          <input type="number" id="disc-value" min="0" step="0.01" placeholder="0"
+                 style="width:80px;padding:.3rem .5rem;font-size:.875rem;text-align:right;border:1px solid var(--border);border-radius:5px;"
+                 oninput="renderServiceLines()" />
+          <button class="remove-line" onclick="removeDiscount()">✕</button>
+        </div>
+      </div>
+
+      <div id="add-discount-wrap" style="display:none;margin-bottom:.5rem;">
+        <button class="btn btn-secondary btn-sm" onclick="showDiscount()">+ Add Discount</button>
+      </div>
+
+      <div class="invoice-totals" id="invoice-totals" style="display:none;">
+        <div class="total-row"><span>Subtotal</span><span id="inv-subtotal">$0.00</span></div>
+        <div class="total-row discount" id="inv-discount-row" style="display:none;"><span id="inv-discount-label">Discount</span><span id="inv-discount-val">-$0.00</span></div>
+        <div class="total-row"><span>Tax</span><span id="inv-tax">$0.00</span></div>
+        <div class="total-row grand"><span>Total Due</span><span id="inv-total">$0.00</span></div>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="card-title">📤 Delivery</div>
+      <div class="form-group">
+        <label>Send invoice via</label>
+        <select id="inv-delivery">
+          <option value="email">Email only</option>
+          <option value="sms">SMS / Text only</option>
+          <option value="both">Both email and text</option>
+        </select>
+      </div>
+      <div class="form-group">
+        <label>Due date (optional)</label>
+        <input type="date" id="inv-due" />
+      </div>
+      <div class="form-group">
+        <label>Notes</label>
+        <textarea id="inv-notes" placeholder="Any notes for the client…"></textarea>
+      </div>
+      <button class="btn btn-accent btn-full" onclick="sendInvoice()" id="send-btn">
+        ✉️ Send Invoice
+      </button>
+    </div>
+  </div>
+
+  <!-- ── HISTORY ── -->
+  <div class="panel" id="panel-history">
+    <div style="display:flex;gap:.5rem;margin-bottom:.875rem;flex-wrap:wrap;">
+      <button class="btn btn-secondary btn-sm active-filter" onclick="filterInvoices('all', this)">All</button>
+      <button class="btn btn-secondary btn-sm" onclick="filterInvoices('sent', this)">Sent</button>
+      <button class="btn btn-secondary btn-sm" onclick="filterInvoices('paid', this)">Paid</button>
+      <button class="btn btn-secondary btn-sm" onclick="filterInvoices('draft', this)">Draft</button>
+    </div>
+    <div class="card" style="padding:0;overflow:hidden;">
+      <div id="invoice-list"><div class="loading"><div class="spinner"></div></div></div>
+    </div>
+  </div>
+
+  <!-- ── SCHEDULE ── -->
+  <div class="panel" id="panel-schedule">
+    <div id="gcal-connect-banner" style="display:none;" class="card" style="background:#fef9ec;border-color:#f59e0b;">
+      <div style="display:flex;align-items:center;justify-content:space-between;gap:1rem;flex-wrap:wrap;">
+        <div>
+          <div style="font-weight:700;margin-bottom:.25rem;">📅 Connect Google Calendar</div>
+          <div style="font-size:.85rem;color:var(--muted);">Connect once to read and write events to Mike's calendar.</div>
+        </div>
+        <a href="/api/auth/google" class="btn btn-primary btn-sm">Connect Google Calendar</a>
+      </div>
+    </div>
+
+    <div style="display:flex;gap:.5rem;margin-bottom:.75rem;">
+      <button id="view-btn-day"   class="btn btn-primary btn-sm"   onclick="setCalView('day')">Day</button>
+      <button id="view-btn-week"  class="btn btn-secondary btn-sm" onclick="setCalView('week')">Week</button>
+      <button id="view-btn-month" class="btn btn-secondary btn-sm" onclick="setCalView('month')">Month</button>
+    </div>
+
+    <div style="display:flex;align-items:center;gap:.75rem;margin-bottom:1rem;flex-wrap:wrap;">
+      <button class="btn btn-secondary btn-sm" onclick="changePeriod(-1)">‹ Prev</button>
+      <input type="date" id="schedule-date" onchange="loadCalendarView()" style="flex:1;max-width:180px;" />
+      <button class="btn btn-secondary btn-sm" onclick="changePeriod(1)">Next ›</button>
+      <button class="btn btn-secondary btn-sm" onclick="goToday()">Today</button>
+      <button class="btn btn-primary btn-sm" onclick="openBooking()" style="margin-left:auto;">+ Book Job</button>
+    </div>
+
+    <div class="card" style="padding:0;overflow:hidden;">
+      <div id="cal-header" style="padding:.75rem 1rem;background:var(--green);color:#fff;font-weight:700;font-size:.9rem;"></div>
+      <div id="day-timeline"></div>
+      <div id="week-view"  style="display:none;overflow-x:auto;"></div>
+      <div id="month-view" style="display:none;width:100%;"></div>
+    </div>
+  </div>
+
+  <!-- ── SERVICES ── -->
+  <div class="panel" id="panel-services">
+    <div style="display:flex;justify-content:flex-end;margin-bottom:.875rem;">
+      <button class="btn btn-primary btn-sm" onclick="openAddService()">+ Add Service</button>
+    </div>
+    <div class="card" style="padding:0;overflow:hidden;">
+      <div id="services-list"><div class="loading"><div class="spinner"></div></div></div>
+    </div>
+  </div>
+</div>
+
+<!-- ── Follow Up Modal ── -->
+<div class="modal-backdrop" id="modal-followup">
+  <div class="modal">
+    <div class="modal-title">📱 Send Follow-Up Text</div>
+
+    <div id="followup-customer" style="background:var(--bg);border-radius:6px;padding:.75rem;margin-bottom:1rem;font-size:.875rem;">
+      <div id="followup-name"  style="font-weight:700;"></div>
+      <div id="followup-phone" style="color:var(--muted);font-size:.8rem;"></div>
+    </div>
+
+    <div class="form-group">
+      <label>Quick Templates</label>
+      <div style="display:flex;gap:.5rem;flex-wrap:wrap;margin-bottom:.75rem;">
+        <button class="btn btn-secondary btn-sm" onclick="applyTemplate('unavailable')">📅 Date Unavailable</button>
+        <button class="btn btn-secondary btn-sm" onclick="applyTemplate('moreinfo')">❓ Need More Info</button>
+        <button class="btn btn-secondary btn-sm" onclick="applyTemplate('confirm')">✅ Confirm Appointment</button>
+        <button class="btn btn-secondary btn-sm" onclick="applyTemplate('clear')">✏️ Write My Own</button>
+      </div>
+    </div>
+
+    <div class="form-group">
+      <label>Message <span style="font-weight:400;color:var(--muted);font-size:.75rem;">(you can edit before sending)</span></label>
+      <textarea id="followup-message" rows="6"
+        placeholder="Type your message to the customer…"
+        style="font-size:.9rem;line-height:1.6;"
+        oninput="updateCharCount()"></textarea>
+      <div style="text-align:right;font-size:.75rem;color:var(--muted);margin-top:.25rem;">
+        <span id="followup-charcount">0</span> characters
+      </div>
+    </div>
+
+    <div class="modal-footer">
+      <button class="btn btn-secondary" onclick="closeModal('modal-followup')">Cancel</button>
+      <button class="btn btn-accent" id="followup-send-btn" onclick="sendFollowUp()">📱 Send Text</button>
+    </div>
+  </div>
+</div>
+
+<!-- ── Book Appointment Modal ── -->
+<div class="modal-backdrop" id="modal-booking">
+  <div class="modal">
+    <div class="modal-title">📅 Book a Job</div>
+    <div class="form-group">
+      <label>Client</label>
+      <div class="search-wrap">
+        <span class="search-icon">🔍</span>
+        <input type="text" id="book-client-search" placeholder="Search client…" oninput="searchBookClient(this.value)" autocomplete="off" />
+      </div>
+      <div id="book-client-results" style="display:none;border:1px solid var(--border);border-radius:6px;margin-top:.35rem;background:var(--surface);max-height:160px;overflow-y:auto;"></div>
+      <div id="book-client-selected" style="display:none;background:var(--bg);border-radius:6px;padding:.6rem .75rem;margin-top:.35rem;font-size:.875rem;">
+        <div style="display:flex;justify-content:space-between;align-items:center;">
+          <span id="book-client-name" style="font-weight:700;"></span>
+          <button class="btn btn-secondary btn-sm" onclick="clearBookClient()">Change</button>
+        </div>
+      </div>
+    </div>
+    <div class="form-group">
+      <label>Service / Job Description *</label>
+      <input id="book-service" list="service-name-options" placeholder="e.g. Water Heater Repair" autocomplete="off" />
+      <datalist id="service-name-options"></datalist>
+    </div>
+    <div class="form-row">
+      <div class="form-group">
+        <label>Date *</label>
+        <input type="date" id="book-date" />
+      </div>
+      <div class="form-group">
+        <label>Start Time *</label>
+        <input type="time" id="book-time" value="08:00" />
+      </div>
+    </div>
+    <div class="form-group">
+      <label>Duration</label>
+      <select id="book-duration">
+        <option value="30">30 minutes</option>
+        <option value="60" selected>1 hour</option>
+        <option value="90">1.5 hours</option>
+        <option value="120">2 hours</option>
+        <option value="180">3 hours</option>
+        <option value="240">4 hours</option>
+        <option value="480">All day (8 hours)</option>
+      </select>
+    </div>
+    <div class="form-group">
+      <label>Notes</label>
+      <textarea id="book-notes" placeholder="Access instructions, parts needed, etc…"></textarea>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-secondary" onclick="closeModal('modal-booking')">Cancel</button>
+      <button class="btn btn-primary" onclick="saveBooking()" id="book-save-btn">📅 Book Job</button>
+    </div>
+  </div>
+</div>
+
+<!-- ── Add Client Modal ── -->
+<div class="modal-backdrop" id="modal-client">
+  <div class="modal">
+    <div class="modal-title" id="client-modal-title">👤 Add New Client</div>
+    <input type="hidden" id="c-id" />
+    <div class="form-row">
+      <div class="form-group"><label>First Name *</label><input id="c-first" placeholder="John" /></div>
+      <div class="form-group"><label>Last Name *</label><input id="c-last" placeholder="Smith" /></div>
+    </div>
+    <div class="form-group"><label>Phone *</label><input id="c-phone" type="tel" placeholder="(980) 555-1234" /></div>
+    <div class="form-group"><label>Email</label><input id="c-email" type="email" placeholder="john@email.com" /></div>
+    <div class="form-group"><label>Address</label><input id="c-address" placeholder="123 Main St" /></div>
+    <div class="form-row">
+      <div class="form-group"><label>City</label><input id="c-city" placeholder="Charlotte" /></div>
+      <div class="form-group"><label>Zip</label><input id="c-zip" placeholder="28209" /></div>
+    </div>
+    <div class="form-group"><label>Notes</label><textarea id="c-notes" placeholder="Anything useful to remember…"></textarea></div>
+    <div class="modal-footer">
+      <button class="btn btn-secondary" onclick="closeModal('modal-client')">Cancel</button>
+      <button class="btn btn-primary" onclick="saveClient()">Save Client</button>
+    </div>
+  </div>
+</div>
+
+<!-- ── Add Service Modal ── -->
+<div class="modal-backdrop" id="modal-service">
+  <div class="modal">
+    <div class="modal-title">⚙️ Add / Edit Service</div>
+    <input type="hidden" id="svc-id" />
+    <div class="form-group"><label>Service Name *</label><input id="svc-name" placeholder="Water Heater Repair" /></div>
+    <div class="form-group"><label>Description</label><textarea id="svc-desc" placeholder="Brief description…"></textarea></div>
+    <div class="form-row">
+      <div class="form-group"><label>Price ($) *</label><input id="svc-price" type="number" step="0.01" placeholder="0.00" /></div>
+      <div class="form-group"><label>Tax Rate (e.g. 0.0675)</label><input id="svc-tax" type="number" step="0.0001" placeholder="0.0000" /></div>
+    </div>
+    <div class="form-group">
+      <label>Category</label>
+      <input id="svc-cat" list="category-options" placeholder="Select existing or type new…" autocomplete="off" />
+      <datalist id="category-options"></datalist>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-secondary" onclick="closeModal('modal-service')">Cancel</button>
+      <button class="btn btn-primary" onclick="saveService()">Save Service</button>
+    </div>
+  </div>
+</div>
+
+<!-- ── Toast ── -->
+<div id="toast"></div>
+
+<script>
+// ── Config ────────────────────────────────────────────────────
+const ADMIN_PASSWORD = 'almonte2025'; // Change before launch — matches ADMIN_PASSWORD env var
+const API = '/.netlify/functions';
+
+// ── Tax rates ─────────────────────────────────────────────────
+const COUNTY_RATES = {
+  union:       { rate: 0.0675, label: '6.75% (Union County)' },
+  mecklenburg: { rate: 0.0725, label: '7.25% (Mecklenburg County)' },
+  other:       { rate: 0.0475, label: '4.75% (State only)' },
+};
+
+function getEffectiveTaxRate() {
+  if (document.getElementById('inv-no-tax')?.checked) return 0;
+  const county  = document.getElementById('inv-county')?.value || 'union';
+  const jobType = document.getElementById('inv-job-type')?.value || 'repair';
+  if (jobType === 'capital_improvement') return 0;
+  return COUNTY_RATES[county]?.rate ?? 0.0675;
+}
+
+function updateTaxDisplay() {
+  const noTax   = document.getElementById('inv-no-tax').checked;
+  const county  = document.getElementById('inv-county').value;
+  const jobType = document.getElementById('inv-job-type').value;
+  const label   = document.getElementById('tax-rate-label');
+  const countyEl  = document.getElementById('inv-county');
+  const jobTypeEl = document.getElementById('inv-job-type');
+
+  // Dim county/job-type selectors when override is active
+  countyEl.disabled  = noTax;
+  jobTypeEl.disabled = noTax;
+  countyEl.style.opacity  = noTax ? '.4' : '1';
+  jobTypeEl.style.opacity = noTax ? '.4' : '1';
+
+  if (noTax) {
+    label.textContent = '0% — No Tax Override';
+    label.style.color = 'var(--red)';
+  } else if (jobType === 'capital_improvement') {
+    label.textContent = '0% — Capital Improvement (customer not charged tax)';
+    label.style.color = 'var(--muted)';
+  } else {
+    label.textContent = COUNTY_RATES[county]?.label ?? '';
+    label.style.color = 'var(--green)';
+  }
+  renderServiceLines();
+}
+
+// ── State ─────────────────────────────────────────────────────
+let allClients    = [];
+let allServices   = [];
+let allInvoices   = [];
+let currentInvoiceFilter = 'all';
+let selectedClient  = null;
+let invoiceLines    = [];
+let discountType    = 'flat'; // 'flat' or 'percent'
+
+// ── Auth ──────────────────────────────────────────────────────
+function login() {
+  const pw = document.getElementById('password-input').value;
+  if (pw === ADMIN_PASSWORD) {
+    sessionStorage.setItem('admin_auth', '1');
+    document.getElementById('auth-gate').style.display = 'none';
+    document.getElementById('app').style.display = 'flex';
+    document.getElementById('app').style.flexDirection = 'column';
+    initApp();
+  } else {
+    document.getElementById('auth-error').style.display = 'block';
+  }
+}
+document.getElementById('password-input').addEventListener('keydown', e => { if (e.key === 'Enter') login(); });
+
+function logout() {
+  sessionStorage.removeItem('admin_auth');
+  location.reload();
+}
+
+if (sessionStorage.getItem('admin_auth') === '1') {
+  document.getElementById('auth-gate').style.display = 'none';
+  document.getElementById('app').style.display = 'flex';
+  document.getElementById('app').style.flexDirection = 'column';
+  setTimeout(initApp, 0);
+}
+
+// ── Init ──────────────────────────────────────────────────────
+async function initApp() {
+  await Promise.all([loadClients(), loadServices(), loadInvoices(), loadLeads()]);
+  renderOverview();
+  renderClientList();
+  populateCategoryList();
+  populateServiceSelect();
+  renderInvoiceList('all');
+  renderServicesList();
+}
+
+// ── Data fetchers ─────────────────────────────────────────────
+async function loadClients() {
+  try {
+    const r = await fetch(`${API}/clients`);
+    allClients = await r.json();
+  } catch { allClients = []; }
+}
+
+async function loadServices() {
+  try {
+    const r = await fetch(`${API}/services`);
+    allServices = await r.json();
+  } catch { allServices = []; }
+}
+
+async function loadInvoices() {
+  try {
+    const r = await fetch(`${API}/invoices`);
+    allInvoices = await r.json();
+  } catch { allInvoices = []; }
+}
+
+// ── Tabs ──────────────────────────────────────────────────────
+let scheduleInitialized = false;
+function switchTab(name) {
+  document.querySelectorAll('.panel').forEach(p => p.classList.remove('active'));
+  document.querySelectorAll('.nav-tab').forEach(t => t.classList.remove('active'));
+  document.getElementById(`panel-${name}`).classList.add('active');
+  event.target.classList.add('active');
+  if (name === 'schedule' && !scheduleInitialized) {
+    scheduleInitialized = true;
+    initSchedule();
+  }
+  if (name === 'leads') renderLeads();
+}
+
+// ── Overview ──────────────────────────────────────────────────
+function renderOverview() {
+  const paid    = allInvoices.filter(i => i.status === 'paid');
+  const revenue = paid.reduce((s, i) => s + parseFloat(i.total || 0), 0);
+  document.getElementById('stat-clients').textContent  = allClients.length;
+  document.getElementById('stat-invoices').textContent = allInvoices.filter(i => i.status !== 'draft').length;
+  document.getElementById('stat-paid').textContent     = paid.length;
+  document.getElementById('stat-revenue').textContent  = '$' + revenue.toLocaleString('en-US', {minimumFractionDigits:0,maximumFractionDigits:0});
+
+  const recent = allInvoices.slice(0, 5);
+  const el = document.getElementById('recent-invoices');
+  if (!recent.length) { el.innerHTML = '<div class="empty"><div class="empty-icon">🧾</div><p>No invoices yet</p></div>'; return; }
+  el.innerHTML = recent.map(inv => invoiceRow(inv)).join('');
+}
+
+// ── Clients ───────────────────────────────────────────────────
+function renderClientList(filtered) {
+  const clients = filtered ?? allClients;
+  const el = document.getElementById('client-list');
+  if (!clients.length) { el.innerHTML = '<div class="empty"><div class="empty-icon">👥</div><p>No clients found</p></div>'; return; }
+  el.innerHTML = clients.map(c => `
+    <div class="client-item" onclick="openEditClient(${JSON.stringify(c).replace(/"/g,'&quot;')})">
+      <div class="client-avatar">${c.first_name[0]}${c.last_name[0]}</div>
+      <div>
+        <div class="client-name">${c.first_name} ${c.last_name}</div>
+        <div class="client-meta">${c.phone}${c.email ? ' · ' + c.email : ''}</div>
+      </div>
+      <span class="client-arrow" style="font-size:.8rem;color:var(--muted);">Edit ›</span>
+    </div>
+  `).join('');
+}
+
+let searchTimer;
+function searchClients(q) {
+  clearTimeout(searchTimer);
+  searchTimer = setTimeout(async () => {
+    if (!q.trim()) { renderClientList(); return; }
+    try {
+      const r = await fetch(`${API}/clients?search=${encodeURIComponent(q)}`);
+      renderClientList(await r.json());
+    } catch { renderClientList(allClients.filter(c => `${c.first_name} ${c.last_name} ${c.phone}`.toLowerCase().includes(q.toLowerCase()))); }
+  }, 300);
+}
+
+function openAddClient() {
+  document.getElementById('c-id').value = '';
+  document.getElementById('client-modal-title').textContent = '👤 Add New Client';
+  ['c-first','c-last','c-phone','c-email','c-address','c-city','c-zip','c-notes'].forEach(id => document.getElementById(id).value = '');
+  openModal('modal-client');
+}
+
+function openEditClient(c) {
+  document.getElementById('c-id').value    = c.id;
+  document.getElementById('client-modal-title').textContent = '✏️ Edit Client';
+  document.getElementById('c-first').value = c.first_name || '';
+  document.getElementById('c-last').value  = c.last_name  || '';
+  document.getElementById('c-phone').value = c.phone      || '';
+  document.getElementById('c-email').value = c.email      || '';
+  document.getElementById('c-address').value = c.address  || '';
+  document.getElementById('c-city').value  = c.city       || '';
+  document.getElementById('c-zip').value   = c.zip        || '';
+  document.getElementById('c-notes').value = c.notes      || '';
+  openModal('modal-client');
+}
+
+async function saveClient() {
+  const id = document.getElementById('c-id').value;
+  const body = {
+    first_name: document.getElementById('c-first').value.trim(),
+    last_name:  document.getElementById('c-last').value.trim(),
+    phone:      document.getElementById('c-phone').value.trim(),
+    email:      document.getElementById('c-email').value.trim(),
+    address:    document.getElementById('c-address').value.trim(),
+    city:       document.getElementById('c-city').value.trim(),
+    zip:        document.getElementById('c-zip').value.trim(),
+    notes:      document.getElementById('c-notes').value.trim(),
+  };
+  if (!body.first_name || !body.last_name || !body.phone) { toast('Name and phone are required', 'error'); return; }
+  try {
+    const url    = id ? `${API}/clients?id=${id}` : `${API}/clients`;
+    const method = id ? 'PUT' : 'POST';
+    const r = await fetch(url, { method, headers:{'Content-Type':'application/json'}, body:JSON.stringify(body) });
+    if (!r.ok) throw new Error((await r.json()).error);
+    const client = await r.json();
+    if (id) {
+      const idx = allClients.findIndex(c => c.id === id);
+      if (idx > -1) allClients[idx] = client;
+    } else {
+      allClients.unshift(client);
+    }
+    renderClientList();
+    closeModal('modal-client');
+    toast(id ? 'Client updated!' : 'Client saved!', 'success');
+  } catch(err) { toast(err.message, 'error'); }
+}
+
+// ── Invoice builder ───────────────────────────────────────────
+let invClientSearchTimer;
+function searchInvClient(q) {
+  const resultsEl = document.getElementById('inv-client-results');
+  clearTimeout(invClientSearchTimer);
+  if (!q.trim()) { resultsEl.style.display = 'none'; return; }
+  invClientSearchTimer = setTimeout(() => {
+    const matches = allClients.filter(c => `${c.first_name} ${c.last_name} ${c.phone}`.toLowerCase().includes(q.toLowerCase())).slice(0, 6);
+    if (!matches.length) { resultsEl.style.display = 'none'; return; }
+    resultsEl.style.display = 'block';
+    resultsEl.innerHTML = matches.map(c => `
+      <div style="padding:.6rem .875rem;cursor:pointer;border-bottom:1px solid var(--border);" onmousedown="selectInvClient(${JSON.stringify(c).replace(/"/g,'&quot;')})">
+        <div style="font-weight:600;">${c.first_name} ${c.last_name}</div>
+        <div style="font-size:.8rem;color:var(--muted);">${c.phone}${c.email ? ' · ' + c.email : ''}</div>
+      </div>
+    `).join('');
+  }, 200);
+}
+
+function selectInvClient(c) {
+  selectedClient = c;
+  document.getElementById('inv-client-search').value = '';
+  document.getElementById('inv-client-results').style.display = 'none';
+  document.getElementById('inv-client-selected').style.display = 'block';
+  document.getElementById('inv-client-name').textContent = `${c.first_name} ${c.last_name}`;
+  document.getElementById('inv-client-phone').textContent = `${c.phone}${c.email ? ' · ' + c.email : ''}`;
+}
+
+function clearInvClient() {
+  selectedClient = null;
+  document.getElementById('inv-client-selected').style.display = 'none';
+  document.getElementById('inv-client-search').value = '';
+}
+
+function populateServiceSelect() {
+  const sel = document.getElementById('service-select');
+  const grouped = {};
+  allServices.forEach(s => { (grouped[s.category || 'Other'] = grouped[s.category || 'Other'] || []).push(s); });
+  sel.innerHTML = '<option value="">— Select a service to add —</option>';
+  Object.entries(grouped).sort().forEach(([cat, svcs]) => {
+    const og = document.createElement('optgroup');
+    og.label = cat;
+    svcs.forEach(s => {
+      const o = document.createElement('option');
+      o.value = s.id;
+      o.dataset.price    = s.price;
+      o.dataset.tax      = s.tax_rate || 0;
+      o.dataset.name     = s.name;
+      o.textContent = `${s.name} — $${parseFloat(s.price).toFixed(2)}`;
+      og.appendChild(o);
+    });
+    sel.appendChild(og);
+  });
+}
+
+function addServiceLine(sel) {
+  if (!sel.value) return;
+  const opt = sel.options[sel.selectedIndex];
+  invoiceLines.push({ service_id: sel.value, service_name: opt.dataset.name, unit_price: parseFloat(opt.dataset.price), quantity: 1 });
+  sel.value = '';
+  renderServiceLines();
+}
+
+function removeLine(idx) {
+  invoiceLines.splice(idx, 1);
+  renderServiceLines();
+}
+
+function updateLinePrice(idx, val) {
+  const parsed = parseFloat(val);
+  if (!isNaN(parsed) && parsed >= 0) invoiceLines[idx].unit_price = parsed;
+  renderServiceLines();
+}
+
+// ── Discount helpers ──────────────────────────────────────────
+function showDiscount() {
+  document.getElementById('discount-section').style.display = 'block';
+  document.getElementById('add-discount-wrap').style.display = 'none';
+  document.getElementById('disc-value').focus();
+}
+
+function removeDiscount() {
+  document.getElementById('discount-section').style.display = 'none';
+  document.getElementById('add-discount-wrap').style.display = invoiceLines.length ? 'block' : 'none';
+  document.getElementById('disc-value').value = '';
+  renderServiceLines();
+}
+
+function setDiscountType(type) {
+  discountType = type;
+  document.getElementById('disc-flat-btn').classList.toggle('active', type === 'flat');
+  document.getElementById('disc-pct-btn').classList.toggle('active', type === 'percent');
+  renderServiceLines();
+}
+
+function getDiscountAmount(subtotal) {
+  const discSection = document.getElementById('discount-section');
+  if (discSection.style.display === 'none') return 0;
+  const val = parseFloat(document.getElementById('disc-value').value) || 0;
+  if (val <= 0) return 0;
+  return discountType === 'percent' ? subtotal * (val / 100) : Math.min(val, subtotal);
+}
+
+function renderServiceLines() {
+  const el    = document.getElementById('service-lines');
+  const totEl = document.getElementById('invoice-totals');
+  const discWrap = document.getElementById('add-discount-wrap');
+
+  if (!invoiceLines.length) {
+    el.innerHTML = '';
+    totEl.style.display = 'none';
+    discWrap.style.display = 'none';
+    document.getElementById('discount-section').style.display = 'none';
+    return;
+  }
+
+  el.innerHTML = invoiceLines.map((l, i) => `
+    <div class="service-line">
+      <div class="service-line-name">${l.service_name}</div>
+      <div style="display:flex;align-items:center;gap:.25rem;">
+        <span style="color:var(--muted);font-size:.85rem;font-weight:600;">$</span>
+        <input type="number" class="price-input" step="0.01" min="0"
+               value="${l.unit_price.toFixed(2)}"
+               onchange="updateLinePrice(${i}, this.value)"
+               title="Edit price" />
+      </div>
+      <button class="remove-line" onclick="removeLine(${i})">✕</button>
+    </div>
+  `).join('');
+
+  // Show "Add Discount" button only if discount section is hidden
+  if (document.getElementById('discount-section').style.display === 'none') {
+    discWrap.style.display = 'block';
+  }
+
+  const taxRate       = getEffectiveTaxRate();
+  const subtotal      = invoiceLines.reduce((s,l) => s + l.unit_price * l.quantity, 0);
+  const discountAmt   = getDiscountAmount(subtotal);
+  const taxableAmount = subtotal - discountAmt;
+  const tax           = taxableAmount * taxRate;
+  const total         = taxableAmount + tax;
+
+  totEl.style.display = 'block';
+  document.getElementById('inv-subtotal').textContent = '$' + subtotal.toFixed(2);
+  document.getElementById('inv-tax').textContent      = '$' + tax.toFixed(2) + (taxRate === 0 ? ' (no tax)' : '');
+  document.getElementById('inv-total').textContent    = '$' + total.toFixed(2);
+
+  // Discount row
+  const discRow   = document.getElementById('inv-discount-row');
+  const discLabel = document.getElementById('inv-discount-label');
+  const discVal   = document.getElementById('inv-discount-val');
+  if (discountAmt > 0) {
+    const dispType = discountType === 'percent'
+      ? `Discount (${parseFloat(document.getElementById('disc-value').value || 0)}%)`
+      : 'Discount';
+    discLabel.textContent = dispType;
+    discVal.textContent   = '-$' + discountAmt.toFixed(2);
+    discRow.style.display = 'flex';
+  } else {
+    discRow.style.display = 'none';
+  }
+}
+
+async function sendInvoice() {
+  if (!selectedClient) { toast('Please select a client first', 'error'); return; }
+  if (!invoiceLines.length) { toast('Add at least one service', 'error'); return; }
+  const btn = document.getElementById('send-btn');
+  btn.disabled = true; btn.textContent = 'Sending…';
+  try {
+    const body = {
+      client_id:       selectedClient.id,
+      items:           invoiceLines,
+      notes:           document.getElementById('inv-notes').value.trim(),
+      delivery_method: document.getElementById('inv-delivery').value,
+      due_date:        document.getElementById('inv-due').value || null,
+      county:          document.getElementById('inv-county').value,
+      job_type:        document.getElementById('inv-job-type').value,
+      tax_override:    document.getElementById('inv-no-tax').checked,
+      discount_type:   discountType,
+      discount_value:  parseFloat(document.getElementById('disc-value').value) || 0,
+    };
+    const r = await fetch(`${API}/invoices`, { method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify(body) });
+    if (!r.ok) throw new Error((await r.json()).error);
+    const inv = await r.json();
+    allInvoices.unshift(inv);
+    toast('Invoice sent! ✅', 'success');
+    // Reset form
+    selectedClient = null; invoiceLines = [];
+    clearInvClient(); renderServiceLines();
+    document.getElementById('inv-notes').value    = '';
+    document.getElementById('inv-no-tax').checked = false;
+    document.getElementById('disc-value').value   = '';
+    discountType = 'flat';
+    setDiscountType('flat');
+    removeDiscount();
+    updateTaxDisplay();
+    renderOverview(); renderInvoiceList('all');
+  } catch(err) { toast(err.message || 'Send failed', 'error'); }
+  finally { btn.disabled = false; btn.textContent = '✉️ Send Invoice'; }
+}
+
+// ── Invoice history ───────────────────────────────────────────
+function invoiceRow(inv) {
+  const client = inv.client || {};
+  const name   = client.first_name ? `${client.first_name} ${client.last_name}` : 'Unknown client';
+  const date   = new Date(inv.created_at).toLocaleDateString('en-US', {month:'short', day:'numeric', year:'numeric'});
+  return `
+    <div class="invoice-item">
+      <div class="invoice-header">
+        <div>
+          <div class="invoice-num">${inv.invoice_number}</div>
+          <div class="invoice-meta">${name} · ${date}</div>
+        </div>
+        <div style="text-align:right;">
+          <div style="font-weight:700;font-size:.95rem;">$${parseFloat(inv.total||0).toFixed(2)}</div>
+          <span class="badge badge-${inv.status}">${inv.status}</span>
+        </div>
+      </div>
+      <div style="display:flex;align-items:center;justify-content:space-between;gap:.75rem;margin-top:.4rem;flex-wrap:wrap;">
+        ${inv.square_payment_link ? `<a href="${inv.square_payment_link}" target="_blank" style="font-size:.78rem;color:var(--green);">View payment link ↗</a>` : '<span></span>'}
+        ${(inv.status !== 'paid' && inv.status !== 'cancelled')
+          ? `<button class="btn btn-secondary btn-sm" onclick="markInvoicePaid('${inv.id}', this)">✓ Mark Paid</button>`
+          : ''}
+      </div>
+    </div>
+  `;
+}
+
+async function markInvoicePaid(invoiceId, btn) {
+  if (!confirm('Mark this invoice as paid? Use this only when you\'ve confirmed the payment.')) return;
+  const original = btn ? btn.textContent : '';
+  if (btn) { btn.disabled = true; btn.textContent = 'Saving…'; }
+  try {
+    const r = await fetch(`${API}/invoices?id=${invoiceId}`, {
+      method: 'PATCH',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ status: 'paid' }),
+    });
+    if (!r.ok) throw new Error((await r.json()).error);
+    const updated = await r.json();
+    const idx = allInvoices.findIndex(i => i.id === invoiceId);
+    if (idx > -1) allInvoices[idx] = updated;
+    toast('Invoice marked paid ✅', 'success');
+    renderOverview();
+    renderInvoiceList(currentInvoiceFilter);
+  } catch (err) {
+    toast(err.message || 'Could not mark paid', 'error');
+    if (btn) { btn.disabled = false; btn.textContent = original; }
+  }
+}
+
+function renderInvoiceList(filter) {
+  const invoices = filter === 'all' ? allInvoices : allInvoices.filter(i => i.status === filter);
+  const el = document.getElementById('invoice-list');
+  if (!invoices.length) { el.innerHTML = '<div class="empty"><div class="empty-icon">🧾</div><p>No invoices</p></div>'; return; }
+  el.innerHTML = invoices.map(inv => invoiceRow(inv)).join('');
+}
+
+function filterInvoices(status, btn) {
+  currentInvoiceFilter = status;
+  document.querySelectorAll('.active-filter').forEach(b => b.classList.remove('active-filter'));
+  btn.classList.add('active-filter');
+  renderInvoiceList(status);
+}
+
+// ── Services ──────────────────────────────────────────────────
+function populateCategoryList() {
+  const categories = [...new Set(allServices.map(s => s.category).filter(Boolean))].sort();
+  const datalist = document.getElementById('category-options');
+  datalist.innerHTML = categories.map(c => `<option value="${c}">`).join('');
+}
+
+function renderServicesList() {
+  const el = document.getElementById('services-list');
+  if (!allServices.length) { el.innerHTML = '<div class="empty"><div class="empty-icon">⚙️</div><p>No services</p></div>'; return; }
+  const grouped = {};
+  allServices.forEach(s => { (grouped[s.category || 'Other'] = grouped[s.category || 'Other'] || []).push(s); });
+  el.innerHTML = Object.entries(grouped).sort().map(([cat, svcs]) => `
+    <div style="padding:.6rem 1rem .25rem;font-size:.75rem;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.06em;background:var(--bg);">${cat}</div>
+    ${svcs.map(s => `
+      <div style="padding:.75rem 1rem;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;gap:.5rem;">
+        <div>
+          <div style="font-weight:600;font-size:.875rem;">${s.name}</div>
+          <div style="font-size:.8rem;color:var(--muted);">${s.description || ''}</div>
+        </div>
+        <div style="text-align:right;flex-shrink:0;">
+          <div style="font-weight:700;">$${parseFloat(s.price).toFixed(2)}</div>
+          <button class="btn btn-secondary btn-sm" style="margin-top:.35rem;" onclick="openEditService(${JSON.stringify(s).replace(/"/g,'&quot;')})">Edit</button>
+        </div>
+      </div>
+    `).join('')}
+  `).join('');
+}
+
+function openAddService() {
+  ['svc-id','svc-name','svc-desc','svc-price','svc-tax','svc-cat'].forEach(id => document.getElementById(id).value = '');
+  openModal('modal-service');
+}
+
+function openEditService(s) {
+  document.getElementById('svc-id').value   = s.id;
+  document.getElementById('svc-name').value = s.name;
+  document.getElementById('svc-desc').value = s.description || '';
+  document.getElementById('svc-price').value= s.price;
+  document.getElementById('svc-tax').value  = s.tax_rate || '';
+  document.getElementById('svc-cat').value  = s.category || '';
+  openModal('modal-service');
+}
+
+async function saveService() {
+  const id   = document.getElementById('svc-id').value;
+  const body = {
+    name:        document.getElementById('svc-name').value.trim(),
+    description: document.getElementById('svc-desc').value.trim(),
+    price:       parseFloat(document.getElementById('svc-price').value),
+    tax_rate:    parseFloat(document.getElementById('svc-tax').value) || 0,
+    category:    document.getElementById('svc-cat').value.trim(),
+  };
+  if (!body.name || isNaN(body.price)) { toast('Name and price are required', 'error'); return; }
+  try {
+    const url = id ? `${API}/services?id=${id}` : `${API}/services`;
+    const method = id ? 'PUT' : 'POST';
+    const r = await fetch(url, { method, headers:{'Content-Type':'application/json'}, body:JSON.stringify(body) });
+    if (!r.ok) throw new Error((await r.json()).error);
+    await loadServices();
+    renderServicesList();
+    populateCategoryList();
+    populateServiceSelect();
+    closeModal('modal-service');
+    toast('Service saved!', 'success');
+  } catch(err) { toast(err.message, 'error'); }
+}
+
+// ── Modals ────────────────────────────────────────────────────
+function openModal(id)  { document.getElementById(id).classList.add('open'); }
+function closeModal(id) { document.getElementById(id).classList.remove('open'); }
+document.querySelectorAll('.modal-backdrop').forEach(m => m.addEventListener('click', e => { if (e.target === m) m.classList.remove('open'); }));
+
+// ── Leads ─────────────────────────────────────────────────────
+let allLeads = [];
+let currentLeadFilter = 'all';
+
+async function loadLeads() {
+  try {
+    const r = await fetch(`${API}/leads`);
+    allLeads = await r.json();
+    updateLeadsBadge();
+  } catch { allLeads = []; }
+}
+
+function updateLeadsBadge() {
+  const newCount = allLeads.filter(l => l.status === 'new').length;
+  const badge = document.getElementById('leads-badge');
+  if (newCount > 0) {
+    badge.textContent = newCount;
+    badge.style.display = 'inline';
+  } else {
+    badge.style.display = 'none';
+  }
+}
+
+function filterLeads(status, btn) {
+  currentLeadFilter = status;
+  document.querySelectorAll('.active-lead-filter').forEach(b => b.classList.remove('active-lead-filter'));
+  btn.classList.add('active-lead-filter');
+  renderLeads();
+}
+
+function renderLeads() {
+  const el = document.getElementById('leads-list');
+  const leads = currentLeadFilter === 'all'
+    ? allLeads
+    : allLeads.filter(l => l.status === currentLeadFilter);
+
+  if (!leads.length) {
+    el.innerHTML = '<div class="empty"><div class="empty-icon">🎯</div><p>No leads found</p></div>';
+    return;
+  }
+
+  el.innerHTML = `<div class="card" style="padding:0;overflow:hidden;">${leads.map(lead => leadCard(lead)).join('')}</div>`;
+}
+
+function leadCard(lead) {
+  const name    = [lead.first_name, lead.last_name].filter(Boolean).join(' ') || 'Unknown';
+  const time    = new Date(lead.created_at).toLocaleString('en-US',{month:'short',day:'numeric',hour:'numeric',minute:'2-digit'});
+  const urgencyColor = {
+    'Emergency — Need help now': '🚨',
+    'Urgent — Within 24 hours':  '⚠️',
+    'Soon — Within a few days':  '📋',
+    'Flexible — Schedule at your convenience': '📆',
+  }[lead.urgency] || '📋';
+
+  const booked = lead.status === 'booked';
+  const declined = lead.status === 'declined';
+
+  return `
+    <div class="lead-card">
+      <div class="lead-card__header">
+        <div class="lead-card__name">${name}</div>
+        <div style="display:flex;align-items:center;gap:.5rem;">
+          <span class="badge badge-${lead.status}">${lead.status}</span>
+          <span class="lead-card__time">${time}</span>
+        </div>
+      </div>
+      ${lead.service_type ? `<div class="lead-card__service">🔧 ${lead.service_type}</div>` : ''}
+      ${lead.urgency ? `<div class="lead-card__urgency">${urgencyColor} ${lead.urgency}</div>` : ''}
+      <div class="lead-card__contact">
+        <a href="tel:${lead.phone}">📞 ${lead.phone}</a>
+        ${lead.email ? ` · <a href="mailto:${lead.email}">✉️ ${lead.email}</a>` : ''}
+        ${lead.address ? ` · 📍 ${lead.address}` : ''}
+      </div>
+      ${lead.description ? `<div class="lead-card__desc">"${lead.description}"</div>` : ''}
+      <div class="lead-card__actions">
+        <a href="tel:${lead.phone}" class="btn btn-secondary btn-sm">📞 Call</a>
+        ${!booked && !declined ? `
+          <button class="btn btn-primary btn-sm" onclick="bookFromLead(${JSON.stringify(lead).replace(/"/g,'&quot;')})">📅 Book Job</button>
+          <button class="btn btn-secondary btn-sm" style="background:#f0fdf4;color:#166534;border-color:#bbf7d0;" onclick="openFollowUp(${JSON.stringify(lead).replace(/"/g,'&quot;')})">📱 Follow Up</button>
+          ${lead.status !== 'contacted' ? `<button class="btn btn-secondary btn-sm" onclick="updateLeadStatus('${lead.id}','contacted')">✓ Mark Contacted</button>` : ''}
+          <button class="btn btn-secondary btn-sm" style="color:var(--red);" onclick="updateLeadStatus('${lead.id}','declined')">✗ Decline</button>
+        ` : ''}
+        ${booked && lead.appointment ? `<span style="font-size:.78rem;color:var(--green);font-weight:600;">✅ Booked ${lead.appointment.scheduled_date}</span>` : ''}
+      </div>
+    </div>
+  `;
+}
+
+// ── Follow-up SMS ─────────────────────────────────────────────
+let followUpLead = null;
+
+const TEMPLATES = {
+  unavailable: (lead) => {
+    const name    = lead.first_name || 'there';
+    const service = lead.service_type || 'your plumbing issue';
+    const datePart = lead.preferred_date
+      ? ` Unfortunately ${new Date(lead.preferred_date + 'T12:00:00').toLocaleDateString('en-US',{weekday:'long',month:'long',day:'numeric'})} doesn't work for me.`
+      : '';
+    return `Hi ${name}, this is Mike from Almonte Plumbing! I got your request for ${service}.${datePart} I'd love to get you taken care of — what other dates or times work for you? Feel free to call or text me back at (980) 416-0341. Thanks!`;
+  },
+  moreinfo: (lead) => {
+    const name    = lead.first_name || 'there';
+    const service = lead.service_type || 'your plumbing issue';
+    return `Hi ${name}, this is Mike from Almonte Plumbing! I saw your request for ${service} and wanted to follow up with a quick question before we schedule. Could you give me a call or reply here with a bit more detail? (980) 416-0341 — Thanks!`;
+  },
+  confirm: (lead) => {
+    const name = lead.first_name || 'there';
+    return `Hi ${name}, this is Mike from Almonte Plumbing! Just confirming your upcoming appointment. If you need to reschedule or have any questions, call or text me at (980) 416-0341. See you soon!`;
+  },
+  clear: () => '',
+};
+
+function openFollowUp(lead) {
+  followUpLead = lead;
+  const name = [lead.first_name, lead.last_name].filter(Boolean).join(' ') || 'Customer';
+  document.getElementById('followup-name').textContent  = name;
+  document.getElementById('followup-phone').textContent = lead.phone;
+  applyTemplate('unavailable'); // default to most common use case
+  openModal('modal-followup');
+}
+
+function applyTemplate(key) {
+  if (!followUpLead) return;
+  const msg = TEMPLATES[key]?.(followUpLead) ?? '';
+  document.getElementById('followup-message').value = msg;
+  updateCharCount();
+  if (key !== 'clear') document.getElementById('followup-message').focus();
+}
+
+function updateCharCount() {
+  const len = document.getElementById('followup-message').value.length;
+  const el  = document.getElementById('followup-charcount');
+  el.textContent = len;
+  el.style.color = len > 320 ? 'var(--red)' : 'var(--muted)';
+}
+
+async function sendFollowUp() {
+  if (!followUpLead) return;
+  const message = document.getElementById('followup-message').value.trim();
+  if (!message) { toast('Please enter a message', 'error'); return; }
+
+  const btn = document.getElementById('followup-send-btn');
+  btn.disabled = true; btn.textContent = 'Sending…';
+
+  try {
+    const r = await fetch(`${API}/leads?id=${followUpLead.id}`, {
+      method: 'PATCH',
+      headers: {'Content-Type':'application/json'},
+      body: JSON.stringify({
+        action:  'followup',
+        message,
+        phone:   followUpLead.phone,
+      }),
+    });
+    if (!r.ok) throw new Error((await r.json()).error);
+    const result = await r.json();
+
+    // Update local state
+    const idx = allLeads.findIndex(l => l.id === followUpLead.id);
+    if (idx > -1) {
+      allLeads[idx].status = 'contacted';
+      allLeads[idx].notes  = result.lead?.notes || allLeads[idx].notes;
+    }
+    updateLeadsBadge();
+    renderLeads();
+    closeModal('modal-followup');
+    toast(`Text sent to ${followUpLead.first_name || followUpLead.phone} ✅`, 'success');
+  } catch(err) {
+    toast(err.message || 'Failed to send text', 'error');
+  } finally {
+    btn.disabled = false; btn.textContent = '📱 Send Text';
+  }
+}
+
+async function updateLeadStatus(leadId, status) {
+  try {
+    const r = await fetch(`${API}/leads?id=${leadId}`, {
+      method: 'PATCH',
+      headers: {'Content-Type':'application/json'},
+      body: JSON.stringify({ status }),
+    });
+    if (!r.ok) throw new Error((await r.json()).error);
+    const idx = allLeads.findIndex(l => l.id === leadId);
+    if (idx > -1) allLeads[idx].status = status;
+    updateLeadsBadge();
+    renderLeads();
+    toast(`Lead marked as ${status}`, 'success');
+  } catch(err) { toast(err.message, 'error'); }
+}
+
+async function bookFromLead(lead) {
+  // Step 1: find or create client from lead data
+  const clientData = {
+    first_name: lead.first_name || '',
+    last_name:  lead.last_name  || '',
+    phone:      lead.phone,
+    email:      lead.email      || '',
+    address:    lead.address    || '',
+    notes:      `Lead from website — ${lead.service_type || ''}`.trim(),
+  };
+
+  let client;
+  try {
+    const r = await fetch(`${API}/leads?id=${lead.id}`, {
+      method: 'PATCH',
+      headers: {'Content-Type':'application/json'},
+      body: JSON.stringify({ convert: 'client', client_data: clientData, status: 'contacted' }),
+    });
+    if (!r.ok) throw new Error((await r.json()).error);
+    const result = await r.json();
+    client = result.client;
+
+    if (result.existed) {
+      toast(`Found existing client: ${client.first_name} ${client.last_name}`, 'success');
+    } else {
+      // Add to local clients list
+      allClients.unshift(client);
+      toast(`New client created: ${client.first_name} ${client.last_name}`, 'success');
+    }
+  } catch(err) {
+    toast(`Could not create client: ${err.message}`, 'error');
+    return;
+  }
+
+  // Step 2: open booking modal pre-filled
+  selectBookClient(client);
+  document.getElementById('book-service').value   = lead.service_type || '';
+  document.getElementById('book-date').value      = lead.preferred_date || new Date().toISOString().split('T')[0];
+  document.getElementById('book-time').value      = '08:00';
+  document.getElementById('book-duration').value  = '60';
+  document.getElementById('book-notes').value     =
+    [lead.description, lead.address ? `Address: ${lead.address}` : ''].filter(Boolean).join('\n');
+
+  // Store lead ID so we can mark it booked after saving
+  document.getElementById('modal-booking').dataset.leadId = lead.id;
+
+  openModal('modal-booking');
+}
+
+// ── Schedule ──────────────────────────────────────────────────
+let selectedBookClient = null;
+let dayEvents    = [];
+let currentCalView = 'day';
+
+function initSchedule() {
+  document.getElementById('schedule-date').value = new Date().toISOString().split('T')[0];
+  populateServiceNameList();
+  loadCalendarView();
+}
+
+function setCalView(view) {
+  currentCalView = view;
+  ['day','week','month'].forEach(v => {
+    const btn = document.getElementById(`view-btn-${v}`);
+    btn.className = `btn btn-sm ${v === view ? 'btn-primary' : 'btn-secondary'}`;
+  });
+  loadCalendarView();
+}
+
+function loadCalendarView() {
+  if      (currentCalView === 'day')   loadDayEvents();
+  else if (currentCalView === 'week')  loadWeekView();
+  else if (currentCalView === 'month') loadMonthView();
+}
+
+function goToday() {
+  document.getElementById('schedule-date').value = new Date().toISOString().split('T')[0];
+  loadCalendarView();
+}
+
+function changePeriod(delta) {
+  const el   = document.getElementById('schedule-date');
+  const date = new Date(el.value + 'T12:00:00');
+  if      (currentCalView === 'day')   date.setDate(date.getDate() + delta);
+  else if (currentCalView === 'week')  date.setDate(date.getDate() + delta * 7);
+  else if (currentCalView === 'month') date.setMonth(date.getMonth() + delta);
+  el.value = date.toISOString().split('T')[0];
+  loadCalendarView();
+}
+
+// ── Helpers ───────────────────────────────────────────────────
+function showCalPanel(which) {
+  ['day-timeline','week-view','month-view'].forEach(id => {
+    document.getElementById(id).style.display = id === which ? 'block' : 'none';
+  });
+  if (which === 'week-view') document.getElementById('week-view').style.display = 'block';
+}
+
+async function fetchEvents(from, to) {
+  const url = `${API}/calendar?date_from=${from}&date_to=${to}`;
+  const r = await fetch(url);
+  if (!r.ok) {
+    const err = await r.json();
+    if (err.error?.includes('not connected')) {
+      document.getElementById('gcal-connect-banner').style.display = 'block';
+    }
+    throw new Error(err.error);
+  }
+  return r.json();
+}
+
+function fmtTime(dt) {
+  return new Date(dt).toLocaleTimeString('en-US',{hour:'numeric',minute:'2-digit'});
+}
+
+function isAlmonteEvent(ev) { return ev.summary?.startsWith('🔧'); }
+
+function evDateStr(ev) {
+  return (ev.start?.dateTime || ev.start?.date || '').split('T')[0];
+}
+
+function groupByDate(events) {
+  const map = {};
+  events.forEach(ev => {
+    const d = evDateStr(ev);
+    (map[d] = map[d] || []).push(ev);
+  });
+  return map;
+}
+
+// ── Day view ──────────────────────────────────────────────────
+async function loadDayEvents() {
+  const date = document.getElementById('schedule-date').value;
+  const hdr  = document.getElementById('cal-header');
+  const tl   = document.getElementById('day-timeline');
+  if (!date) return;
+  showCalPanel('day-timeline');
+  hdr.textContent = new Date(date + 'T12:00:00').toLocaleDateString('en-US',{weekday:'long',month:'long',day:'numeric',year:'numeric'});
+  tl.innerHTML = '<div class="loading"><div class="spinner"></div></div>';
+  try {
+    dayEvents = await fetchEvents(date, date);
+    tl.innerHTML = dayEvents.length ? dayEvents.map(ev => {
+      const start   = ev.start?.dateTime ? fmtTime(ev.start.dateTime) : 'All day';
+      const end     = ev.end?.dateTime   ? fmtTime(ev.end.dateTime)   : '';
+      const almonte = isAlmonteEvent(ev);
+      return `
+        <div class="event-block ${almonte ? 'almonte' : 'external'}">
+          ${almonte ? `<button class="event-cancel" onclick="cancelEvent('${ev.id}')" title="Cancel">✕</button>` : ''}
+          <div class="event-time">${start}${end ? ' – ' + end : ''}</div>
+          <div class="event-title">${ev.summary || '(No title)'}</div>
+          ${ev.description ? `<div class="event-detail">${ev.description.replace(/\n/g,'<br>')}</div>` : ''}
+        </div>`;
+    }).join('') : '<div class="no-events">No events — free day! 🎉</div>';
+  } catch(err) {
+    tl.innerHTML = `<div class="no-events">Error: ${err.message}</div>`;
+  }
+}
+
+// ── Week view ─────────────────────────────────────────────────
+async function loadWeekView() {
+  const baseDate  = new Date(document.getElementById('schedule-date').value + 'T12:00:00');
+  const dow       = baseDate.getDay();
+  const weekStart = new Date(baseDate); weekStart.setDate(baseDate.getDate() - dow);
+  const weekEnd   = new Date(weekStart); weekEnd.setDate(weekStart.getDate() + 6);
+  const from      = weekStart.toISOString().split('T')[0];
+  const to        = weekEnd.toISOString().split('T')[0];
+  const hdr       = document.getElementById('cal-header');
+  const el        = document.getElementById('week-view');
+
+  showCalPanel('week-view');
+  hdr.textContent = `Week of ${weekStart.toLocaleDateString('en-US',{month:'long',day:'numeric',year:'numeric'})}`;
+  el.innerHTML    = '<div class="loading" style="padding:2rem;text-align:center;"><div class="spinner"></div></div>';
+
+  try {
+    const events  = await fetchEvents(from, to);
+    const byDate  = groupByDate(events);
+    const today   = new Date().toISOString().split('T')[0];
+
+    const days = Array.from({length:7}, (_, i) => {
+      const d = new Date(weekStart); d.setDate(weekStart.getDate() + i); return d;
+    });
+
+    el.innerHTML = `<div class="week-grid">
+      ${days.map(d => {
+        const ds   = d.toISOString().split('T')[0];
+        const evs  = byDate[ds] || [];
+        const isTd = ds === today;
+        return `
+          <div class="week-col${isTd ? ' today' : ''}" onclick="navToDay('${ds}')">
+            <div class="week-day-hdr">
+              <div class="week-day-name">${d.toLocaleDateString('en-US',{weekday:'short'})}</div>
+              <div class="week-day-num${isTd ? ' today-circle' : ''}">${d.getDate()}</div>
+            </div>
+            <div class="week-day-events">
+              ${evs.length ? evs.map(ev => {
+                const t = ev.start?.dateTime ? fmtTime(ev.start.dateTime) : '';
+                return `<div class="week-event${isAlmonteEvent(ev) ? '' : ' external'}" title="${ev.summary}">${t ? t + ' ' : ''}${ev.summary || 'Event'}</div>`;
+              }).join('') : `<div class="week-free">Free</div>`}
+            </div>
+          </div>`;
+      }).join('')}
+    </div>`;
+  } catch(err) {
+    el.innerHTML = `<div class="no-events" style="padding:2rem;">Error: ${err.message}</div>`;
+  }
+}
+
+// ── Month view ────────────────────────────────────────────────
+async function loadMonthView() {
+  const base  = new Date(document.getElementById('schedule-date').value + 'T12:00:00');
+  const year  = base.getFullYear();
+  const month = base.getMonth();
+  const from  = `${year}-${String(month+1).padStart(2,'0')}-01`;
+  const lastD = new Date(year, month+1, 0).getDate();
+  const to    = `${year}-${String(month+1).padStart(2,'0')}-${lastD}`;
+  const hdr   = document.getElementById('cal-header');
+  const el    = document.getElementById('month-view');
+
+  showCalPanel('month-view');
+  hdr.textContent = base.toLocaleDateString('en-US',{month:'long',year:'numeric'});
+  el.innerHTML    = '<div class="loading" style="padding:2rem;text-align:center;"><div class="spinner"></div></div>';
+
+  try {
+    const events  = await fetchEvents(from, to);
+    const byDate  = groupByDate(events);
+    const today   = new Date().toISOString().split('T')[0];
+    const firstDow= new Date(year, month, 1).getDay();
+
+    let html = `<div class="month-grid">
+      ${['Sun','Mon','Tue','Wed','Thu','Fri','Sat'].map(d => `<div class="month-hdr">${d}</div>`).join('')}
+      ${Array(firstDow).fill('<div class="month-cell empty"></div>').join('')}
+      ${Array.from({length:lastD}, (_, i) => {
+        const d   = i + 1;
+        const ds  = `${year}-${String(month+1).padStart(2,'0')}-${String(d).padStart(2,'0')}`;
+        const evs = byDate[ds] || [];
+        const isTd= ds === today;
+        return `
+          <div class="month-cell${isTd ? ' today' : ''}${evs.length ? ' has-events' : ''}" onclick="navToDay('${ds}')">
+            <div class="month-date${isTd ? ' today-circle' : ''}">${d}</div>
+            ${evs.slice(0,2).map(ev => `<div class="month-event-pill${isAlmonteEvent(ev) ? '' : ' external'}">${ev.summary || 'Event'}</div>`).join('')}
+            ${evs.length > 2 ? `<div class="month-more">+${evs.length-2} more</div>` : ''}
+          </div>`;
+      }).join('')}
+    </div>`;
+
+    el.innerHTML = html;
+  } catch(err) {
+    el.innerHTML = `<div class="no-events" style="padding:2rem;">Error: ${err.message}</div>`;
+  }
+}
+
+function navToDay(dateStr) {
+  document.getElementById('schedule-date').value = dateStr;
+  setCalView('day');
+}
+
+// ── Cancel event ──────────────────────────────────────────────
+async function cancelEvent(googleEventId) {
+  if (!confirm('Cancel this appointment? It will be removed from Google Calendar.')) return;
+  try {
+    const r = await fetch(`${API}/calendar?google_event_id=${googleEventId}&id=${googleEventId}`, { method:'DELETE' });
+    if (!r.ok) throw new Error((await r.json()).error);
+    toast('Appointment cancelled', 'success');
+    loadDayEvents();
+  } catch(err) { toast(err.message, 'error'); }
+}
+
+// ── Book appointment ──────────────────────────────────────────
+function openBooking() {
+  document.getElementById('book-date').value     = document.getElementById('schedule-date').value || new Date().toISOString().split('T')[0];
+  document.getElementById('book-service').value  = '';
+  document.getElementById('book-notes').value    = '';
+  document.getElementById('book-time').value     = '08:00';
+  document.getElementById('book-duration').value = '60';
+  clearBookClient();
+  openModal('modal-booking');
+}
+
+let bookClientTimer;
+function searchBookClient(q) {
+  const res = document.getElementById('book-client-results');
+  clearTimeout(bookClientTimer);
+  if (!q.trim()) { res.style.display = 'none'; return; }
+  bookClientTimer = setTimeout(() => {
+    const matches = allClients.filter(c => `${c.first_name} ${c.last_name} ${c.phone}`.toLowerCase().includes(q.toLowerCase())).slice(0,6);
+    if (!matches.length) { res.style.display = 'none'; return; }
+    res.style.display = 'block';
+    res.innerHTML = matches.map(c => `
+      <div style="padding:.6rem .875rem;cursor:pointer;border-bottom:1px solid var(--border);" onmousedown="selectBookClient(${JSON.stringify(c).replace(/"/g,'&quot;')})">
+        <div style="font-weight:600;font-size:.875rem;">${c.first_name} ${c.last_name}</div>
+        <div style="font-size:.78rem;color:var(--muted);">${c.phone}</div>
+      </div>`).join('');
+  }, 200);
+}
+
+function selectBookClient(c) {
+  selectedBookClient = c;
+  document.getElementById('book-client-search').value = '';
+  document.getElementById('book-client-results').style.display = 'none';
+  document.getElementById('book-client-selected').style.display = 'block';
+  document.getElementById('book-client-name').textContent = `${c.first_name} ${c.last_name} · ${c.phone}`;
+}
+
+function clearBookClient() {
+  selectedBookClient = null;
+  document.getElementById('book-client-selected').style.display = 'none';
+  document.getElementById('book-client-search').value = '';
+}
+
+function populateServiceNameList() {
+  const dl = document.getElementById('service-name-options');
+  if (dl) dl.innerHTML = allServices.map(s => `<option value="${s.name}">`).join('');
+}
+
+async function saveBooking() {
+  const btn  = document.getElementById('book-save-btn');
+  const date = document.getElementById('book-date').value;
+  const time = document.getElementById('book-time').value;
+  const desc = document.getElementById('book-service').value.trim();
+  if (!date || !time || !desc) { toast('Date, time, and service description are required', 'error'); return; }
+  btn.disabled = true; btn.textContent = 'Booking…';
+  try {
+    const body = {
+      client_id:           selectedBookClient?.id || null,
+      service_description: desc,
+      date,
+      start_time:          time,
+      duration_minutes:    parseInt(document.getElementById('book-duration').value),
+      notes:               document.getElementById('book-notes').value.trim(),
+    };
+    const r = await fetch(`${API}/calendar`, { method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify(body) });
+    if (!r.ok) throw new Error((await r.json()).error);
+    toast('Job booked! ✅', 'success');
+
+    // If booked from a lead, mark it as booked
+    const leadId = document.getElementById('modal-booking').dataset.leadId;
+    if (leadId) {
+      delete document.getElementById('modal-booking').dataset.leadId;
+      await fetch(`${API}/leads?id=${leadId}`, {
+        method: 'PATCH',
+        headers: {'Content-Type':'application/json'},
+        body: JSON.stringify({ status: 'booked' }),
+      });
+      const idx = allLeads.findIndex(l => l.id === leadId);
+      if (idx > -1) allLeads[idx].status = 'booked';
+      updateLeadsBadge();
+      if (document.getElementById('panel-leads').classList.contains('active')) renderLeads();
+    }
+
+    closeModal('modal-booking');
+    if (document.getElementById('schedule-date').value === date) loadCalendarView();
+  } catch(err) { toast(err.message, 'error'); }
+  finally { btn.disabled = false; btn.textContent = '📅 Book Job'; }
+}
+
+// ── Toast ─────────────────────────────────────────────────────
+let toastTimer;
+function toast(msg, type = '') {
+  const el = document.getElementById('toast');
+  el.textContent = msg;
+  el.className = 'show ' + type;
+  clearTimeout(toastTimer);
+  toastTimer = setTimeout(() => { el.className = ''; }, 3500);
+}
+</script>
+</body>
+</html>

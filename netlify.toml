@@ -1,0 +1,76 @@
+# Netlify configuration — Almonte Plumbing
+# https://docs.netlify.com/configure-builds/file-based-configuration/
+
+[build]
+  publish = "."
+  functions = "netlify/functions"
+
+[build.environment]
+  NODE_VERSION = "22"
+
+# ── Redirects ──────────────────────────────────────────────────────────────────
+
+# Force HTTPS
+[[redirects]]
+  from   = "http://almonteplumbing.com/*"
+  to     = "https://almonteplumbing.com/:splat"
+  status = 301
+  force  = true
+
+[[redirects]]
+  from   = "http://www.almonteplumbing.com/*"
+  to     = "https://almonteplumbing.com/:splat"
+  status = 301
+  force  = true
+
+# www → apex redirect
+[[redirects]]
+  from   = "https://www.almonteplumbing.com/*"
+  to     = "https://almonteplumbing.com/:splat"
+  status = 301
+  force  = true
+
+# Google OAuth routes (must be before the wildcard /api/* rule)
+[[redirects]]
+  from   = "/api/auth/google/callback"
+  to     = "/.netlify/functions/auth-google-callback"
+  status = 200
+
+[[redirects]]
+  from   = "/api/auth/google"
+  to     = "/.netlify/functions/auth-google"
+  status = 200
+
+# API shorthand for Netlify Functions
+[[redirects]]
+  from   = "/api/*"
+  to     = "/.netlify/functions/:splat"
+  status = 200
+
+# ── Security Headers ────────────────────────────────────────────────────────────
+
+[[headers]]
+  for = "/*"
+  [headers.values]
+    X-Frame-Options           = "DENY"
+    X-Content-Type-Options    = "nosniff"
+    Referrer-Policy           = "strict-origin-when-cross-origin"
+    Permissions-Policy        = "geolocation=(), microphone=(), camera=()"
+    Strict-Transport-Security = "max-age=31536000; includeSubDomains; preload"
+
+# ── Cache static assets ─────────────────────────────────────────────────────────
+
+[[headers]]
+  for = "/assets/*"
+  [headers.values]
+    Cache-Control = "public, max-age=31536000, immutable"
+
+[[headers]]
+  for = "/css/*"
+  [headers.values]
+    Cache-Control = "public, max-age=86400"
+
+[[headers]]
+  for = "/js/*"
+  [headers.values]
+    Cache-Control = "public, max-age=86400"

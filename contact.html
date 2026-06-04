@@ -1,0 +1,295 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="description" content="Contact Almonte Plumbing in Charlotte, NC. Request service, book an appointment, or call (980) 416-0341. Available 24/7.">
+  <meta name="theme-color" content="#1B3A6B">
+  <title>Book Service / Contact | Almonte Plumbing — Charlotte, NC</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="css/styles.css">
+</head>
+<body>
+
+  <!-- ===== HEADER ===== -->
+  <header class="header">
+    <div class="container header__inner">
+      <a href="index.html" class="logo" aria-label="Almonte Plumbing Home">
+        <div class="logo__icon" aria-hidden="true">🔧</div>
+        <div>
+          <span style="color:#FFFFFF;">Almonte</span> <span style="color:#A8D5B5;">Plumbing</span>
+          <span class="logo__sub">Charlotte, NC</span>
+        </div>
+      </a>
+      <nav class="nav-desktop" aria-label="Main navigation">
+        <a href="index.html">Home</a>
+        <a href="services.html">Services</a>
+        <a href="contact.html" class="active">Book / Contact</a>
+      </nav>
+      <div class="header__cta">
+        <a href="tel:+19804160341" class="call-btn">📞 (980) 416-0341</a>
+        <button class="hamburger" id="hamburger" aria-label="Open menu" aria-expanded="false" aria-controls="navDrawer">
+          <span></span><span></span><span></span>
+        </button>
+      </div>
+    </div>
+  </header>
+
+  <nav class="nav-drawer" id="navDrawer" aria-label="Mobile navigation">
+    <a href="index.html">🏠 Home</a>
+    <a href="services.html">🔧 Services</a>
+    <a href="contact.html" class="active">📋 Book / Contact</a>
+    <div class="nav-cta">
+      <a href="tel:+19804160341" class="btn btn--primary btn--full" style="justify-content:center; margin-top:.5rem;">
+        📞 Call Now — (980) 416-0341
+      </a>
+    </div>
+  </nav>
+
+  <!-- ===== PAGE HERO ===== -->
+  <section class="page-hero">
+    <div class="container">
+      <h1>Book a Service</h1>
+      <p>Request a service online or call us directly — we respond fast.</p>
+    </div>
+  </section>
+
+  <!-- ===== CONTACT SECTION ===== -->
+  <section class="section">
+    <div class="container">
+      <div class="contact-grid">
+
+        <!-- Left: Contact Info -->
+        <div>
+          <h2 style="margin-bottom:1.5rem;">Get in Touch</h2>
+
+          <div class="contact-info__item">
+            <div class="contact-info__icon">📞</div>
+            <div>
+              <div class="contact-info__label">Phone</div>
+              <div class="contact-info__value"><a href="tel:+19804160341">(980) 416-0341</a></div>
+            </div>
+          </div>
+
+          <div class="contact-info__item">
+            <div class="contact-info__icon">✉️</div>
+            <div>
+              <div class="contact-info__label">Email</div>
+              <div class="contact-info__value"><a href="mailto:Mike@almonteplumbing.com">Mike@almonteplumbing.com</a></div>
+            </div>
+          </div>
+
+          <div class="contact-info__item">
+            <div class="contact-info__icon">🕐</div>
+            <div>
+              <div class="contact-info__label">Hours</div>
+              <div class="contact-info__value">Available 24/7<br><small style="font-weight:400;color:#6B7280;">Emergency service always available</small></div>
+            </div>
+          </div>
+
+          <div class="contact-info__item">
+            <div class="contact-info__icon">📍</div>
+            <div>
+              <div class="contact-info__label">Service Area</div>
+              <div class="contact-info__value">Greater Charlotte Area<br><small style="font-weight:400;color:#6B7280;">North &amp; South Carolina</small></div>
+            </div>
+          </div>
+
+          <div style="background:var(--light); border-radius:var(--radius-lg); padding:1.25rem; margin-top:1rem;">
+            <div style="font-weight:700; margin-bottom:.5rem;">🚨 Plumbing Emergency?</div>
+            <p style="font-size:.9rem; color:var(--text-light); margin-bottom:.75rem;">Don't wait — call us right now for immediate assistance.</p>
+            <a href="tel:+19804160341" class="btn btn--primary btn--full">📞 Call (980) 416-0341</a>
+          </div>
+        </div>
+
+        <!-- Right: Tabbed Form -->
+        <div class="form-card">
+          <div class="tabs" role="tablist" aria-label="Contact options">
+            <button class="tab-btn active" data-tab="tab-request" role="tab" aria-selected="true" aria-controls="tab-request">
+              📋 Request Service
+            </button>
+            <button class="tab-btn" data-tab="tab-schedule" role="tab" aria-selected="false" aria-controls="tab-schedule">
+              📅 Schedule
+            </button>
+          </div>
+
+          <!-- Tab: Service Request -->
+          <div class="tab-panel active" id="tab-request" role="tabpanel">
+            <form
+              id="serviceRequestForm"
+              name="service-request"
+              method="POST"
+              action="/api/contact-form"
+              novalidate
+            >
+
+              <div class="form-row">
+                <div class="form-group">
+                  <label for="name">Your Name <span class="required">*</span></label>
+                  <input type="text" id="name" name="name" class="form-control" placeholder="John Smith" required autocomplete="name">
+                </div>
+                <div class="form-group">
+                  <label for="phone">Phone Number <span class="required">*</span></label>
+                  <input type="tel" id="phone" name="phone" class="form-control" placeholder="(980) 555-1234" required autocomplete="tel">
+                </div>
+              </div>
+
+              <div class="form-group">
+                <label for="email">Email Address</label>
+                <input type="email" id="email" name="email" class="form-control" placeholder="john@example.com" autocomplete="email">
+              </div>
+
+              <div class="form-group">
+                <label for="service">Type of Service <span class="required">*</span></label>
+                <select id="service" name="service" class="form-control" required>
+                  <option value="" disabled selected>Select a service…</option>
+                  <option>Residential Plumbing</option>
+                  <option>Water Heater Repair / Install</option>
+                  <option>Whole House Filtration</option>
+                  <option>Bathroom Renovation</option>
+                  <option>Kitchen Renovation</option>
+                  <option>Bathroom / Kitchen Addition</option>
+                  <option>Toilet Repair / Install</option>
+                  <option>Faucet Repair / Install</option>
+                  <option>Drain Cleaning / Repair</option>
+                  <option>Gas Line Repair / Install</option>
+                  <option>Backflow Preventer</option>
+                  <option>Emergency Plumbing</option>
+                  <option>Other / Not Sure</option>
+                </select>
+              </div>
+
+              <div class="form-group">
+                <label for="urgency">How Urgent Is This?</label>
+                <select id="urgency" name="urgency" class="form-control">
+                  <option value="" disabled selected>Select urgency…</option>
+                  <option>Emergency — Need help now</option>
+                  <option>Urgent — Within 24 hours</option>
+                  <option>Soon — Within a few days</option>
+                  <option>Flexible — Schedule at your convenience</option>
+                </select>
+              </div>
+
+              <div class="form-group">
+                <label for="description">Describe the Issue <span class="required">*</span></label>
+                <textarea id="description" name="description" class="form-control" placeholder="Tell us what's going on — as much detail as you can share helps us prepare for the visit…" required></textarea>
+              </div>
+
+              <div class="form-row">
+                <div class="form-group">
+                  <label for="address">City / Zip Code</label>
+                  <input type="text" id="address" name="address" class="form-control" placeholder="Charlotte, 28209" autocomplete="postal-code">
+                </div>
+                <div class="form-group">
+                  <label for="preferred-date">Preferred Date</label>
+                  <input type="date" id="preferred-date" name="preferred-date" class="form-control">
+                </div>
+              </div>
+
+              <div class="form-group">
+                <label for="preferred-time">Preferred Time</label>
+                <select id="preferred-time" name="preferred-time" class="form-control">
+                  <option value="" disabled selected>Any time (flexible)</option>
+                  <option>Morning (7am – 12pm)</option>
+                  <option>Afternoon (12pm – 5pm)</option>
+                  <option>Evening (5pm – 8pm)</option>
+                  <option>Any time — I'm flexible</option>
+                </select>
+              </div>
+
+              <button type="submit" class="btn btn--primary btn--full btn--lg" style="margin-top:.5rem;">
+                ✅ Submit Service Request
+              </button>
+
+              <p style="font-size:.8rem; color:var(--text-light); text-align:center; margin-top:.75rem;">
+                We typically respond within 1 hour during business hours.
+              </p>
+            </form>
+
+            <!-- Success Message -->
+            <div class="form-success" id="formSuccess">
+              <div class="form-success__icon">✅</div>
+              <h3>Request Received!</h3>
+              <p>Thanks — we'll reach out to confirm your appointment shortly. For urgent issues, call us directly at <a href="tel:+19804160341" style="color:var(--accent);">(980) 416-0341</a>.</p>
+            </div>
+          </div>
+
+          <!-- Tab: Schedule / Appointment -->
+          <div class="tab-panel" id="tab-schedule" role="tabpanel">
+            <div class="schedule-note">
+              <div class="schedule-note__icon">📅</div>
+              <h3>Schedule an Appointment</h3>
+              <p>For the quickest booking, fill out the service request form or give Mike a call — he'll get you on the calendar fast.</p>
+              <div style="display:flex; flex-direction:column; gap:.75rem; margin-top:1rem;">
+                <a href="tel:+19804160341" class="btn btn--primary btn--full btn--lg">📞 Call to Schedule — (980) 416-0341</a>
+                <a href="mailto:Mike@almonteplumbing.com" class="btn btn--secondary btn--full">✉️ Email to Schedule</a>
+              </div>
+            </div>
+
+            <div style="margin-top:1.5rem; padding:1.25rem; background:var(--light); border-radius:var(--radius-lg);">
+              <h3 style="margin-bottom:.75rem; font-size:1rem;">📋 Or Use the Service Request Form</h3>
+              <p style="font-size:.9rem; color:var(--text-light); margin-bottom:.75rem;">Fill out your details and preferred time — we'll confirm your appointment via phone or email.</p>
+              <button class="btn btn--secondary btn--full" onclick="document.querySelector('[data-tab=\'tab-request\']').click()">
+                Go to Service Request Form →
+              </button>
+            </div>
+
+            <div style="margin-top:1.5rem;">
+              <h3 style="font-size:1rem; margin-bottom:.5rem; color:var(--text-light);">📍 Service Area</h3>
+              <p style="font-size:.9rem; color:var(--text-light);">We proudly serve Charlotte, Concord, Huntersville, Matthews, Mint Hill, Monroe, Rock Hill, Fort Mill, and surrounding areas in NC &amp; SC.</p>
+            </div>
+          </div>
+
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ===== FOOTER ===== -->
+  <footer class="footer">
+    <div class="container">
+      <div class="footer__grid">
+        <div>
+          <div class="footer__logo">🔧 Almonte Plumbing</div>
+          <p class="footer__tagline">Licensed · Insured · Bonded<br>Serving Greater Charlotte, NC</p>
+          <a href="mailto:Mike@almonteplumbing.com" class="footer__contact-item" style="margin-top:.25rem;">✉️ Mike@almonteplumbing.com</a>
+          <a href="tel:+19804160341" class="footer__contact-item">📞 (980) 416-0341</a>
+          <div class="footer__contact-item">🕐 Available 24/7</div>
+        </div>
+        <div>
+          <div class="footer__heading">Quick Links</div>
+          <ul class="footer__links">
+            <li><a href="index.html">Home</a></li>
+            <li><a href="services.html">Services</a></li>
+            <li><a href="contact.html">Book Service</a></li>
+            <li><a href="contact.html">Contact Us</a></li>
+          </ul>
+        </div>
+        <div>
+          <div class="footer__heading">Services</div>
+          <ul class="footer__links">
+            <li><a href="services.html">Water Heater Repair</a></li>
+            <li><a href="services.html">Drain Cleaning</a></li>
+            <li><a href="services.html">Bathroom Renovations</a></li>
+            <li><a href="services.html">House Filtration</a></li>
+            <li><a href="services.html">Gas Line Services</a></li>
+          </ul>
+        </div>
+      </div>
+      <div class="footer__bottom">
+        <span>© 2025 Almonte Plumbing. All rights reserved.</span>
+        <span>NC &amp; SC Licensed Plumber</span>
+      </div>
+    </div>
+  </footer>
+
+  <div class="sticky-call" aria-label="Quick contact bar">
+    <a href="tel:+19804160341">📞 Call Now</a>
+    <a href="contact.html">📋 Request Service</a>
+  </div>
+
+  <script src="js/main.js"></script>
+</body>
+</html>

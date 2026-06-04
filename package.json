@@ -1,0 +1,21 @@
+{
+  "name": "almonte-plumbing",
+  "version": "1.0.0",
+  "description": "Almonte Plumbing — marketing site + CRM + invoicing",
+  "scripts": {
+    "dev": "netlify dev",
+    "build": "echo 'Static site — no build step required'"
+  },
+  "dependencies": {
+    "@supabase/supabase-js": "^2.45.0",
+    "square": "^40.0.0",
+    "twilio": "^5.3.0",
+    "@sendgrid/mail": "^8.1.0"
+  },
+  "devDependencies": {
+    "netlify-cli": "^17.0.0"
+  },
+  "engines": {
+    "node": ">=22.0.0"
+  }
+}

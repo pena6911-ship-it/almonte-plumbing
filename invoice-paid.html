@@ -1,0 +1,204 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="robots" content="noindex" />
+  <meta name="description" content="Payment received — thank you for choosing Almonte Plumbing." />
+
+  <meta name="theme-color" content="#1A4D2E" />
+  <link rel="icon" href="/assets/favicon.ico" />
+
+  <title>Payment Received | Almonte Plumbing</title>
+
+  <!-- Fonts -->
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet" />
+
+  <link rel="stylesheet" href="css/styles.css" />
+
+  <style>
+    /* ---- Payment confirmation (page-specific) ---- */
+    .confirm {
+      min-height: calc(100vh - var(--nav-height) - 200px);
+      display: flex; align-items: center; justify-content: center;
+      padding: 3rem 1rem;
+      background:
+        radial-gradient(circle at 50% 0%, rgba(168,213,181,0.25), transparent 60%),
+        var(--light);
+    }
+    .confirm__card {
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-lg);
+      box-shadow: var(--shadow-lg);
+      max-width: 540px; width: 100%;
+      padding: 2.75rem 2rem;
+      text-align: center;
+    }
+    .confirm__check {
+      width: 92px; height: 92px; margin: 0 auto 1.5rem;
+      border-radius: 50%;
+      background: var(--primary);
+      display: flex; align-items: center; justify-content: center;
+      box-shadow: 0 0 0 8px rgba(26,77,46,0.10);
+      animation: pop .45s cubic-bezier(.2,.8,.3,1.2) both;
+    }
+    .confirm__check svg { width: 46px; height: 46px; }
+    .confirm__check svg path {
+      stroke: #fff; stroke-width: 7; fill: none;
+      stroke-linecap: round; stroke-linejoin: round;
+      stroke-dasharray: 100; stroke-dashoffset: 100;
+      animation: draw .5s .35s ease forwards;
+    }
+    @keyframes pop  { from { transform: scale(.4); opacity: 0; } to { transform: scale(1); opacity: 1; } }
+    @keyframes draw { to { stroke-dashoffset: 0; } }
+
+    .confirm__eyebrow {
+      display: inline-block; margin-bottom: .75rem;
+      font-size: .8rem; font-weight: 700; letter-spacing: .08em; text-transform: uppercase;
+      color: var(--accent);
+    }
+    .confirm__card h1 { font-size: clamp(1.6rem, 5vw, 2.25rem); margin-bottom: .75rem; }
+    .confirm__card p  { color: var(--text-light); margin-bottom: 1rem; }
+    .confirm__note {
+      background: var(--light);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 1rem 1.25rem; margin: 1.5rem 0;
+      font-size: .95rem; color: var(--text);
+    }
+    .confirm__actions {
+      display: flex; flex-wrap: wrap; gap: .75rem; justify-content: center; margin-top: 1.75rem;
+    }
+    .confirm__contact {
+      margin-top: 1.75rem; padding-top: 1.5rem; border-top: 1px solid var(--border);
+      font-size: .9rem; color: var(--text-light);
+    }
+    .confirm__contact a { color: var(--primary); font-weight: 600; }
+  </style>
+</head>
+<body>
+
+  <!-- EMERGENCY TOP BAR -->
+  <div class="emergency-bar">
+    <div class="container emergency-bar__inner">
+      <span class="emergency-bar__pulse"></span>
+      <span>⚡ 24/7 Emergency Service Available</span>
+      <a href="tel:+19804160341" class="emergency-bar__number">(980) 416-0341</a>
+    </div>
+  </div>
+
+  <!-- HEADER -->
+  <header class="header">
+    <div class="container header__inner">
+      <a href="index.html" class="logo" aria-label="Almonte Plumbing Home">
+        <div class="logo__icon" aria-hidden="true">🔧</div>
+        <div>
+          <span class="logo__name">Almonte <span class="logo__name--light">Plumbing</span></span>
+          <span class="logo__sub">Charlotte, NC</span>
+        </div>
+      </a>
+
+      <nav class="nav-desktop" aria-label="Main navigation">
+        <a href="index.html">Home</a>
+        <a href="services.html">Services</a>
+        <a href="contact.html">Book / Contact</a>
+      </nav>
+
+      <div class="header__cta">
+        <a href="tel:+19804160341" class="call-btn" aria-label="Call Almonte Plumbing">
+          📞 <span class="call-btn__num">(980) 416-0341</span>
+        </a>
+        <button class="hamburger" id="hamburger" aria-label="Open menu" aria-expanded="false" aria-controls="navDrawer">
+          <span></span><span></span><span></span>
+        </button>
+      </div>
+    </div>
+  </header>
+
+  <!-- Mobile Nav Drawer -->
+  <nav class="nav-drawer" id="navDrawer" aria-label="Mobile navigation">
+    <a href="index.html">🏠 Home</a>
+    <a href="services.html">🔧 Services</a>
+    <a href="contact.html">📋 Book / Contact</a>
+    <div class="nav-cta">
+      <a href="tel:+19804160341" class="btn btn--primary btn--full" style="justify-content:center;">
+        📞 Call Now — (980) 416-0341
+      </a>
+    </div>
+  </nav>
+
+  <!-- PAYMENT CONFIRMATION -->
+  <main class="confirm">
+    <div class="confirm__card">
+      <div class="confirm__check" aria-hidden="true">
+        <svg viewBox="0 0 100 100"><path d="M26 52 L44 70 L76 32" /></svg>
+      </div>
+
+      <span class="confirm__eyebrow">Payment Received</span>
+      <h1>Thank you!</h1>
+      <p>Your payment has been processed successfully. We truly appreciate your business.</p>
+
+      <div class="confirm__note">
+        📧 A receipt from <strong>Square</strong> is on its way to your email. Your invoice is now
+        marked paid in our records — no further action is needed.
+      </div>
+
+      <p>Have a question about your service or invoice? We're always happy to help.</p>
+
+      <div class="confirm__actions">
+        <a href="tel:+19804160341" class="btn btn--primary btn--lg">📞 Call (980) 416-0341</a>
+        <a href="index.html" class="btn btn--outline btn--lg">Back to Home</a>
+      </div>
+
+      <div class="confirm__contact">
+        Almonte Plumbing · Greater Charlotte, NC<br />
+        <a href="mailto:Mike@almonteplumbing.com">Mike@almonteplumbing.com</a> · Licensed · Insured · Bonded
+      </div>
+    </div>
+  </main>
+
+  <!-- FOOTER -->
+  <footer class="footer">
+    <div class="container">
+      <div class="footer__grid">
+        <div>
+          <div class="footer__logo">🔧 Almonte Plumbing</div>
+          <p class="footer__tagline">Licensed · Insured · Bonded<br />Serving Greater Charlotte, NC</p>
+          <a href="mailto:Mike@almonteplumbing.com" class="footer__contact-item">✉️ Mike@almonteplumbing.com</a>
+          <a href="tel:+19804160341"                class="footer__contact-item">📞 (980) 416-0341</a>
+          <div class="footer__contact-item">🕐 Available 24/7</div>
+        </div>
+        <div>
+          <div class="footer__heading">Quick Links</div>
+          <ul class="footer__links">
+            <li><a href="index.html">Home</a></li>
+            <li><a href="services.html">Services</a></li>
+            <li><a href="contact.html">Book Service</a></li>
+            <li><a href="contact.html">Contact Us</a></li>
+          </ul>
+        </div>
+        <div>
+          <div class="footer__heading">Services</div>
+          <ul class="footer__links">
+            <li><a href="services.html">Water Heater Repair</a></li>
+            <li><a href="services.html">Drain Cleaning</a></li>
+            <li><a href="services.html">Bathroom Renovations</a></li>
+            <li><a href="services.html">Whole House Filtration</a></li>
+            <li><a href="services.html">Gas Line Services</a></li>
+            <li><a href="services.html">Emergency Plumbing</a></li>
+          </ul>
+        </div>
+      </div>
+      <div class="footer__bottom">
+        <span>© 2025 Almonte Plumbing. All rights reserved.</span>
+        <span>NC &amp; SC Licensed Plumber</span>
+      </div>
+    </div>
+  </footer>
+
+  <script src="js/main.js"></script>
+</body>
+</html>
