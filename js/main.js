@@ -23,6 +23,22 @@ document.addEventListener('DOMContentLoaded', () => {
     });
   }
 
+  /* ---- Keep header/content clear of the emergency bar (any height) ---- */
+  const emergencyBar = document.querySelector('.emergency-bar');
+  if (emergencyBar) {
+    const syncEbarHeight = () => {
+      const h = emergencyBar.offsetHeight;
+      document.documentElement.style.setProperty('--ebar-height', h + 'px');
+    };
+    syncEbarHeight();
+    window.addEventListener('resize', syncEbarHeight);
+    window.addEventListener('orientationchange', syncEbarHeight);
+    window.addEventListener('load', syncEbarHeight);
+    if (document.fonts && document.fonts.ready) {
+      document.fonts.ready.then(syncEbarHeight);
+    }
+  }
+
   /* ---- Active nav link ---- */
   const path = window.location.pathname.split('/').pop() || 'index.html';
   document.querySelectorAll('.nav-desktop a, .nav-drawer a').forEach(link => {
