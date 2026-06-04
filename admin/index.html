@@ -213,10 +213,13 @@
     <h1>Almonte Plumbing</h1>
     <p>Admin Dashboard</p>
     <div class="form-group">
-      <input type="password" id="password-input" placeholder="Enter admin password" autocomplete="current-password" />
+      <input type="email" id="email-input" placeholder="Email" autocomplete="username" />
     </div>
-    <button class="btn btn-primary btn-full" onclick="login()">Sign In</button>
-    <p class="auth-error" id="auth-error">Incorrect password. Try again.</p>
+    <div class="form-group">
+      <input type="password" id="password-input" placeholder="Password" autocomplete="current-password" />
+    </div>
+    <button class="btn btn-primary btn-full" id="login-btn" onclick="login()">Sign In</button>
+    <p class="auth-error" id="auth-error">Incorrect email or password. Try again.</p>
   </div>
 </div>
 
@@ -591,10 +594,26 @@
 <!-- ── Toast ── -->
 <div id="toast"></div>
 
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script>
 // ── Config ────────────────────────────────────────────────────
-const ADMIN_PASSWORD = 'almonte2025'; // Change before launch — matches ADMIN_PASSWORD env var
 const API = '/.netlify/functions';
+
+// ── Supabase Auth ─────────────────────────────────────────────
+const SUPABASE_URL      = 'https://xzoasjamakdnmegiwxlq.supabase.co';
+const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Inh6b2FzamFtYWtkbm1lZ2l3eGxxIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODA0NDE0NTgsImV4cCI6MjA5NjAxNzQ1OH0.WSKIK2HlGl2u76uoHWbx24d4zZGgW_c4_4DuUDfHrsI'; // public anon key (safe to expose)
+const sb = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+
+// Attach the logged-in user's access token to every API call automatically
+const _origFetch = window.fetch.bind(window);
+window.fetch = async (url, opts = {}) => {
+  if (typeof url === 'string' && url.includes('/.netlify/functions/')) {
+    const { data } = await sb.auth.getSession();
+    const token = data && data.session && data.session.access_token;
+    if (token) opts.headers = { ...(opts.headers || {}), Authorization: 'Bearer ' + token };
+  }
+  return _origFetch(url, opts);
+};
 
 // ── Tax rates ─────────────────────────────────────────────────
 const COUNTY_RATES = {
@@ -648,31 +667,44 @@ let invoiceLines    = [];
 let discountType    = 'flat'; // 'flat' or 'percent'
 
 // ── Auth ──────────────────────────────────────────────────────
-function login() {
-  const pw = document.getElementById('password-input').value;
-  if (pw === ADMIN_PASSWORD) {
-    sessionStorage.setItem('admin_auth', '1');
-    document.getElementById('auth-gate').style.display = 'none';
-    document.getElementById('app').style.display = 'flex';
-    document.getElementById('app').style.flexDirection = 'column';
-    initApp();
-  } else {
-    document.getElementById('auth-error').style.display = 'block';
-  }
+function revealApp() {
+  document.getElementById('auth-gate').style.display = 'none';
+  const app = document.getElementById('app');
+  app.style.display = 'flex';
+  app.style.flexDirection = 'column';
 }
-document.getElementById('password-input').addEventListener('keydown', e => { if (e.key === 'Enter') login(); });
 
-function logout() {
-  sessionStorage.removeItem('admin_auth');
+async function login() {
+  const email = document.getElementById('email-input').value.trim();
+  const pw    = document.getElementById('password-input').value;
+  const errEl = document.getElementById('auth-error');
+  const btn   = document.getElementById('login-btn');
+  errEl.style.display = 'none';
+  if (btn) { btn.disabled = true; btn.textContent = 'Signing in…'; }
+  const { error } = await sb.auth.signInWithPassword({ email, password: pw });
+  if (btn) { btn.disabled = false; btn.textContent = 'Sign In'; }
+  if (error) {
+    errEl.textContent = 'Incorrect email or password. Try again.';
+    errEl.style.display = 'block';
+    return;
+  }
+  revealApp();
+  initApp();
+}
+['email-input', 'password-input'].forEach(id => {
+  document.getElementById(id).addEventListener('keydown', e => { if (e.key === 'Enter') login(); });
+});
+
+async function logout() {
+  await sb.auth.signOut();
   location.reload();
 }
 
-if (sessionStorage.getItem('admin_auth') === '1') {
-  document.getElementById('auth-gate').style.display = 'none';
-  document.getElementById('app').style.display = 'flex';
-  document.getElementById('app').style.flexDirection = 'column';
-  setTimeout(initApp, 0);
-}
+// Resume an existing session on load
+(async () => {
+  const { data } = await sb.auth.getSession();
+  if (data && data.session) { revealApp(); initApp(); }
+})();
 
 // ── Init ──────────────────────────────────────────────────────
 async function initApp() {

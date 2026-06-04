@@ -12,6 +12,16 @@ const supabase = createClient(
   process.env.SUPABASE_SERVICE_ROLE_KEY
 );
 
+// ── Require a valid Supabase session (admin login) ─────────────
+const supabaseAuth = createClient(process.env.SUPABASE_URL, process.env.SUPABASE_ANON_KEY);
+async function isAuthed(event) {
+  const h = event.headers || {};
+  const token = (h.authorization || h.Authorization || '').replace(/^Bearer\s+/i, '').trim();
+  if (!token) return false;
+  const { data, error } = await supabaseAuth.auth.getUser(token);
+  return !error && !!(data && data.user);
+}
+
 const headers = {
   'Content-Type': 'application/json',
   'Access-Control-Allow-Origin': '*',
@@ -57,6 +67,10 @@ async function gcal(method, path, body) {
 // ── Handler ───────────────────────────────────────────────────
 exports.handler = async (event) => {
   if (event.httpMethod === 'OPTIONS') return { statusCode: 200, headers, body: '' };
+
+  if (!(await isAuthed(event))) {
+    return { statusCode: 401, headers, body: JSON.stringify({ error: 'Unauthorized' }) };
+  }
 
   if (!process.env.GOOGLE_REFRESH_TOKEN) {
     return {
