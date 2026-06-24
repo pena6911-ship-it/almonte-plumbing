@@ -5,6 +5,23 @@ Work top to bottom; nothing here should be skipped before taking real payments.
 
 ---
 
+## 0. CONFIRM FIRST — Mike's Square merchant account
+
+> Everything wired so far is Square **sandbox** (test only — no real money, not tied to any
+> real merchant). Before going live, this has to be settled:
+
+- [ ] Confirm whether Mike already has a **Square account**, or create one for him.
+- [ ] Confirm that account is the one payouts should go to (whoever owns the Square
+      account receives the money).
+- [ ] Production Square credentials (access token, location ID, webhook signature key) must
+      come from **that** account — see Section 3.
+
+**Parked:** Home Protection memberships (Essential / Gold / Platinum, monthly + annual).
+Recommended approach is Square-hosted subscription checkout links, created inside Mike's
+real Square account — so this is blocked until the account above is confirmed.
+
+---
+
 ## 1. Netlify — deploy the site
 
 - [ ] Create the site on Netlify (`netlify init`, or connect the Git repo in the Netlify UI).
