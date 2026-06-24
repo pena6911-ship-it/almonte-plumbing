@@ -1,4 +1,4 @@
--- Migration: add discount fields to invoices
+-- Migration 005: add discount fields to invoices
 -- Run in: Supabase Dashboard → SQL Editor
 
 ALTER TABLE invoices

@@ -1,4 +1,4 @@
--- Migration: appointments table
+-- Migration 002: appointments table
 -- Run in: Supabase Dashboard → SQL Editor
 
 CREATE TABLE IF NOT EXISTS appointments (

@@ -1,4 +1,5 @@
--- Migration: leads table (form submissions from website)
+-- Migration 003: leads table (form submissions from website)
+-- Run AFTER 002-appointments.sql (leads references appointments).
 -- Run in: Supabase Dashboard → SQL Editor
 
 CREATE TABLE IF NOT EXISTS leads (

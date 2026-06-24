@@ -1,4 +1,4 @@
--- Migration: add county, job_type, and effective_tax_rate to invoices
+-- Migration 004: add county, job_type, and effective_tax_rate to invoices
 -- Run in: Supabase Dashboard → SQL Editor
 
 ALTER TABLE invoices
